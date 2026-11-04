@@ -1,23 +1,36 @@
 # Samhus research roadmap (proposed, not committed)
 
-## Milestone 0 — executable bootstrap (in progress)
+## Milestone 0 — executable bootstrap: complete
 
-Lexer, parser, small evaluator, command-line interface, examples, tests and CI. Observe the programming experience without committing to a permanent architecture.
+Lexer, parser, evaluator, CLI, examples, tests and GitHub Actions.
+Current interpreter is experimental and intentionally narrow.
 
-## Milestone 1 — language design review
+## Milestone 1 — language design review: pending
 
-Choose a concrete first user problem, evaluate alternative syntax and error diagnostics, confirm file extension, decide license policy, and publish an initial specification proposal.
+- Define the specific real-world problem that Samhus must solve.
+- Compare proposed grammar, ownership and types with existing languages.
+- Obtain explicit owner decisions for the .sahu extension and licensing.
+- Draft a stable, testable conformance specification before 1.0 claims.
 
-## Milestone 2 — stronger semantics
+## Milestone 2 — stronger semantics: partially prototyped
 
-Prototype functions, lexical scopes, modules, an explicit type system, data structures, and deterministic behavior. Build conformance tests before adding features.
+- [x] Multiple functions, parameters and return expressions.
+- [x] Local lexical scopes, recursion and while loops.
+- [x] Execution budget and call-depth diagnostics.
+- [ ] Decide and prototype a static type system.
+- [ ] Add user-defined data structures and modules.
+- [ ] Build deterministic semantics and compatibility tests.
+- [ ] Evaluate error recovery and source spans for tooling.
 
-## Milestone 3 — compilation experiments
+## Milestone 3 — compilation experiments: not started
 
-Benchmark bytecode/interpreter, WebAssembly and native compilation approaches. Evaluate Rust/LLVM integration, cross-platform feasibility, ABI and runtime costs. Choose architecture based on evidence and owner approval.
+Benchmark interpreter vs bytecode, WebAssembly and native compilation.
+Evaluate LLVM integration, ABI/runtime costs and cross-platform feasibility,
+and select architecture only after technical evidence and owner approval.
 
-## Milestone 4 — developer experience
+## Milestone 4 — developer experience: not started
 
-Package manager, tooling protocol, formatting, documentation, stable diagnostics, project templates, security review, and pilot integrations with Alsamos developer services.
+Propose formatter, LSP, package manager, project templates, documentation,
+security review and pilot Alsamos SDK integrations.
 
-No target dates, budgets, production-readiness or platform promises are approved in this roadmap.
+Dates, budgets, production-readiness and future platform targets are **not** approved by this roadmap.

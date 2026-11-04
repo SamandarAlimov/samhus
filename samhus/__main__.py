@@ -6,13 +6,26 @@ import sys
 from . import __version__, parse, run, SamhusError
 
 
+def positive_int(text: str) -> int:
+    try:
+        value = int(text)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("must be a positive integer") from exc
+    if value < 1:
+        raise argparse.ArgumentTypeError("must be a positive integer")
+    return value
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="samhus", description="Samhus experimental interpreter")
     parser.add_argument("--version", action="version", version=f"samhus {__version__} (experimental)")
     subcommands = parser.add_subparsers(dest="command", required=True)
-    for name in ("run", "check"):
-        command = subcommands.add_parser(name)
-        command.add_argument("file", type=Path)
+    run_parser = subcommands.add_parser("run", help="Execute a local source file")
+    run_parser.add_argument("file", type=Path)
+    run_parser.add_argument("--max-steps", type=positive_int, default=100_000,
+                            help="Execution budget (default: 100000); not a security sandbox")
+    check_parser = subcommands.add_parser("check", help="Check syntax only (not types)")
+    check_parser.add_argument("file", type=Path)
     args = parser.parse_args(argv)
     try:
         source = args.file.read_text(encoding="utf-8")
@@ -20,7 +33,7 @@ def main(argv: list[str] | None = None) -> int:
             parse(source)
             print(f"Syntax OK: {args.file}")
         else:
-            run(source)
+            run(source, max_steps=args.max_steps)
         return 0
     except (OSError, UnicodeError) as exc:
         print(f"samhus: {exc}", file=sys.stderr)

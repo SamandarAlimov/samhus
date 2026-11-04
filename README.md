@@ -2,50 +2,98 @@
 
 **Samhus** is an experimental programming language project by **Alsamos**.
 
-> **Status: `0.0.1` bootstrap proof of concept — not a production compiler or a finalized language specification.**
+> **Status: 0.0.2 bootstrap interpreter, not a production compiler or finalized language specification.**
 
-We have started with a tiny, executable interpreter to validate syntax and semantics before committing to a long-term compiler architecture. The prototype is implemented in Python using only the standard library; this is a reversible research choice, **not** a decision about the language's final implementation. The file extension `.sahu` is provisional until explicitly approved by the project owner.
+The current prototype runs simple Samhus programs with functions and control flow.
+It is implemented using the Python standard library so the language design can be evaluated and changed cheaply.
+This is **not** a commitment to use Python in the eventual compiler.
+The source-file extension **.sahu is provisional**, not a finalized standard.
 
-## Try it
+## Quick start
 
-Requires Python **3.11+**. From the repository root:
+Requires **Python 3.11+** and no additional dependencies.
 
-```bash
+~~~bash
+git clone https://github.com/SamandarAlimov/samhus.git
+cd samhus
 python -m samhus run examples/hello.sahu
+python -m samhus run examples/functions.sahu
 python -m samhus check examples/basics.sahu
 python -m unittest discover -s tests -v
-```
+~~~
 
-Expected output:
+Expected hello-world output:
 
-```text
+~~~text
 Assalomu alaykum, Alsamos!
-```
+~~~
 
-Example file (`examples/hello.sahu`):
+## Samhus source example
 
-```text
-fn main() {
-    let company = "Alsamos"
-    println("Assalomu alaykum, " + company + "!")
+The file examples/functions.sahu contains a runnable version of the following program:
+
+~~~text
+fn factorial(n) {
+    if n <= 1 {
+        return 1
+    }
+    return n * factorial(n - 1)
 }
-```
 
-## What works today
+fn main() {
+    println(factorial(5))
+    var i = 0
+    while i < 3 {
+        println(i)
+        i = i + 1
+    }
+}
+~~~
 
-- Lexer with source-positioned errors, comments and escaped strings.
-- Parser for `fn main() { ... }`, `let`, `var`, assignment, `println`, and `if`/`else`.
-- Integers, strings, booleans, arithmetic, comparisons, logical expressions and block scopes.
-- Runtime diagnostics, `run` and `check` commands, automated unit tests and CI.
+Output: 120, 0, 1, 2 (one value per line).
 
-**Not yet included:** user-defined functions, modules, floats, static type checking, native compiler, LLVM/Wasm backend, package manager, IDE integration, or security guarantees. Do not use this prototype to execute untrusted code.
+## Available prototype features
 
-## Project governance
+- Lexer with source-positioned diagnostics, // comments, and escaped strings.
+- Multiple named functions, parameters, return statements, calls, recursion, and main entry point.
+- Local lexical variable scopes; immutable let and mutable var.
+- Statements: declarations, assignment, function calls, if/else and while.
+- Values: arbitrary-precision integers, strings, and booleans.
+- Arithmetic, integer division (truncated toward zero), comparisons, logic with short-circuit behavior, string concatenation.
+- CLI run and syntax-only check; built-in println(value) for output.
+- A bounded step counter and function-call depth to catch common runaway programs.
+- GitHub Actions and regression tests for Python 3.11 and 3.13.
 
-- Name **Samhus**: confirmed by project owner.
-- Extension **`.sahu`**: proposed; not finalized.
-- License/open-source policy: **not decided**. This public repository currently has **no license**, so public visibility does not grant broad reuse rights.
-- Syntax, memory management, compiler implementation, platforms, and 1.0 promises remain open design decisions.
-- See [DECISIONS](docs/DECISIONS.md), [language draft](docs/LANGUAGE.md), [roadmap](docs/ROADMAP.md), and [agent instructions](AGENTS.md).
+To limit steps when running a program:
 
-Other Alsamos projects are unaffected by this repository.
+~~~bash
+python -m samhus run examples/functions.sahu --max-steps 1000
+~~~
+
+**Important limits:** check parses syntax; it does not check types. The interpreter is not a sandbox and **must not** be used with untrusted programs. There are no type annotations, static type checker, imports, floating point numbers, native compilation, WebAssembly backend, package manager, or IDE tooling yet. Function parameters are immutable and variables belong to the current function or nested block. These are experimental semantics, subject to owner-approved language design.
+
+## Repository layout
+
+| Path | Purpose |
+| --- | --- |
+| samhus/lexer.py | Tokenizer |
+| samhus/parser.py | Syntax tree and parser |
+| samhus/runtime.py | Experimental interpreter |
+| samhus/__main__.py | CLI |
+| examples/ | Runnable programs |
+| tests/ | Regression tests |
+| docs/LANGUAGE.md | Current grammar and semantics |
+| docs/DECISIONS.md | Confirmed versus pending decisions |
+| docs/ROADMAP.md | Non-binding technical milestones |
+| docs/ENGINEERING_LOG.md | Implementation activity log |
+| AGENTS.md | Rules for agents and contributors |
+
+## Governance and intellectual property
+
+- **Samhus** is the founder-approved language name.
+- **.sahu** is a proposed extension used for experiments; **approval is pending**.
+- **No license has been selected.** This public GitHub repository currently has **no LICENSE file**, so public visibility is not a grant of broad open-source reuse rights.
+- The long-term syntax, memory model, compiler implementation, platforms, commercial policy, and release plan have not been finalized by the owner.
+- This research repository does not modify the existing Alsamos Web/Flutter projects or live backend.
+
+Read the [language draft](docs/LANGUAGE.md) and [decision log](docs/DECISIONS.md) before treating a prototype choice as a language standard.

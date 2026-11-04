@@ -13,9 +13,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Run tests
+      - name: Compile Python bootstrap
+        run: python -m compileall -q samhus
+      - name: Run all tests
         run: python -m unittest discover -s tests -v
       - name: Run hello world
         run: python -m samhus run examples/hello.sahu
-      - name: Check example syntax
+      - name: Run function example
+        run: python -m samhus run examples/functions.sahu
+      - name: Check syntax
         run: python -m samhus check examples/basics.sahu

@@ -1,35 +1,94 @@
-# Samhus syntax draft — experimental v0.0.1
+# Samhus language draft — experimental 0.0.2
 
-**Not a final standard.** These rules describe only the working bootstrap interpreter.
+These notes describe only the **currently implemented interpreter**.
+They are not a founder-approved, stable language specification.
 
-## Entry point and statements
+## Grammar sketch
 
-~~~sahu
+~~~text
+program      = function* EOF
+function     = "fn" IDENT "(" (IDENT ("," IDENT)*)? ")" block
+block        = "{" statement* "}"
+statement    = ("let" | "var") IDENT "=" expression ";"?
+             | IDENT "=" expression ";"?
+             | expression-call ";"?
+             | "return" expression ";"?
+             | "if" expression block ("else" block)?
+             | "while" expression block
+expression   = literals, names, function calls, unary and binary operations
+~~~
+
+Top-level declarations are functions only. A parameterless fn main() is mandatory,
+and function names must be unique. The builtin function println(value) cannot
+be redefined. A function without an explicit return produces an internal
+no-value result. Return works from inside if and while.
+
+Semicolons are optional; line breaks alone do not delimit statements. Comments
+begin with // and continue to the end of the line.
+
+## Example
+
+~~~text
+fn square(value) {
+    return value * value
+}
+
 fn main() {
-    let name = "Alsamos"  // immutable variable
-    var count = 2         // mutable variable
-    count = count + 1
-    if count == 3 {
-        println(name)
-    } else {
-        println("Unexpected")
+    let name = "Alsamos"
+    var count = 0
+    while count < 3 {
+        if count == 2 {
+            println(name + "!")
+        } else {
+            println(square(count))
+        }
+        count = count + 1
     }
 }
 ~~~
 
-The prototype requires exactly one fn main() with no parameters. Semicolons after statements are optional; // comments extend to the end of the line. Only declarations, assignments, println(expr), and if/else are supported.
+## Values, operators and behavior
 
-## Types and expressions
+- Int: arbitrary-precision signed integers; integer division truncates toward zero.
+- String: double quoted with escaped quote, slash, newline, carriage return, and tab.
+- Bool: true and false.
+- Arithmetic: +, -, *, / on integers; + also concatenates two strings.
+- Ordering: < <= > >= for integers.
+- Equality: == != considers values equal only when their types match.
+- Logical: !, &&, || on booleans. Both binary logical operators short-circuit.
+- Precedence, high to low: unary; multiplication/division; addition/subtraction;
+  ordering; equality; &&; ||.
+- Function arguments are evaluated left to right; wrong arity is a runtime error.
+- let declares an immutable variable; var declares a mutable variable.
+- Parameters are immutable. Nested blocks have their own lexical scopes.
+- Each function invocation has an independent local scope; caller locals
+  are not visible to the called function (no closures or global variables).
+- If/while conditions must be booleans, not integers.
+- A while body has a new block scope per iteration.
+- Calls support forward references and recursion. Evaluation has an internal
+  call-depth limit, and a global execution-step budget.
 
-- Int: arbitrary precision signed integers; integer division truncates toward zero.
-- String: double-quoted strings, with backslash, double quote, newline, carriage return, and tab escapes.
-- Bool: true, false.
-- + - * / arithmetic; + also concatenates two strings.
-- < <= > >= compare integers; == != compare values of the same type (otherwise unequal).
-- ! && || accept booleans; && and || short-circuit.
-- Precedence: unary, multiplication/division, addition/subtraction, ordering, equality, &&, ||.
-- Nested blocks have lexical variable scopes. let cannot be reassigned; var can.
+## APIs and diagnostics
 
-## Error handling and limitations
+~~~bash
+python -m samhus run examples/functions.sahu
+python -m samhus run examples/functions.sahu --max-steps 1000
+python -m samhus check examples/functions.sahu
+~~~
 
-Syntax and runtime errors report source positions. The check command **parses syntax only**; it is not a static type checker. There are no real functions beyond main, modules, file/network APIs, native compilation, security sandbox, or user-defined types yet. The interpreter is for trusted local experiments only.
+check performs **syntactic parsing only**; it does not prove types or safe execution.
+Runtime or parse errors contain line and column numbers.
+
+The Python API parse(source) is kept for backwards compatibility and returns
+the entry function's body after parsing all definitions; parse_program(source)
+returns the full Program with all function declarations.
+
+## Not implemented
+
+Static types, type annotations, overloaded functions, modules, imports,
+user-defined data types, arrays, dictionaries, floats, async/await, filesystem,
+network access, native compiler, LLVM/Wasm, package registry and IDE tooling.
+
+**Security:** bounded steps and calls are *not* a general resource or security
+sandbox. Large integers, deep expressions or host runtime behavior can still
+consume resources. Only run trusted test programs.
