@@ -1,0 +1,14 @@
+// Expressions, variables, branching, and block scopes.
+fn main() {
+    let name = "Samhus"
+    var value = 6 * 7
+    println(name)
+    if value == 42 {
+        println("Answer: ")
+        println(value)
+    } else {
+        println("Unexpected value")
+    }
+    value = value + 1
+    println(value)
+}

@@ -1,0 +1,5 @@
+// Samhus prototype: hello world
+fn main() {
+    let company = "Alsamos"
+    println("Assalomu alaykum, " + company + "!")
+}
