@@ -1,4 +1,4 @@
-"""Recursive-descent parser, with precedence-climbing for expressions."""
+"""Recursive-descent parser; this grammar is still experimental."""
 from dataclasses import dataclass
 from typing import Any
 
@@ -13,6 +13,7 @@ class Expr:
     value: Any = None
     left: "Expr | None" = None
     right: "Expr | None" = None
+    args: tuple["Expr", ...] = ()
 
 
 @dataclass(frozen=True)
@@ -26,7 +27,24 @@ class Stmt:
     else_body: tuple["Stmt", ...] = ()
 
 
-PRECEDENCE = {"||": 1, "&&": 2, "==": 3, "!=": 3, "<": 4, "<=": 4, ">": 4, ">=": 4, "+": 5, "-": 5, "*": 6, "/": 6}
+@dataclass(frozen=True)
+class Function:
+    name: str
+    token: Token
+    params: tuple[str, ...]
+    body: tuple[Stmt, ...]
+
+
+@dataclass(frozen=True)
+class Program:
+    functions: tuple[Function, ...]
+
+
+PRECEDENCE = {
+    "||": 1, "&&": 2, "==": 3, "!=": 3,
+    "<": 4, "<=": 4, ">": 4, ">=": 4,
+    "+": 5, "-": 5, "*": 6, "/": 6,
+}
 
 
 class Parser:
@@ -52,16 +70,41 @@ class Parser:
             raise SamhusError(f"Expected {kind!r}, found {token.kind!r}", token.line, token.column)
         return result
 
+    def parse_program(self) -> Program:
+        functions: list[Function] = []
+        names: set[str] = set()
+        while self.current.kind != "EOF":
+            self.expect("fn")
+            name = self.expect("IDENT")
+            if name.text in names:
+                raise SamhusError(f"Duplicate function {name.text!r}", name.line, name.column)
+            if name.text == "println":
+                raise SamhusError("'println' is a reserved builtin", name.line, name.column)
+            names.add(name.text)
+            self.expect("(")
+            params: list[str] = []
+            if self.current.kind != ")":
+                while True:
+                    param = self.expect("IDENT")
+                    if param.text in params:
+                        raise SamhusError(f"Duplicate parameter {param.text!r}", param.line, param.column)
+                    params.append(param.text)
+                    if not self.accept(","):
+                        break
+            self.expect(")")
+            body = self.block()
+            functions.append(Function(name.text, name, tuple(params), body))
+        entry = next((fn for fn in functions if fn.name == "main"), None)
+        if entry is None:
+            token = self.current
+            raise SamhusError("Missing entry point: only 'fn main()' is a valid entry point", token.line, token.column)
+        if entry.params:
+            raise SamhusError("Entry point 'main' must have zero parameters", entry.token.line, entry.token.column)
+        return Program(tuple(functions))
+
     def parse(self) -> tuple[Stmt, ...]:
-        self.expect("fn")
-        name = self.expect("IDENT")
-        if name.text != "main":
-            raise SamhusError("Prototype supports only 'fn main()'", name.line, name.column)
-        self.expect("(")
-        self.expect(")")
-        body = self.block()
-        self.expect("EOF")
-        return body
+        """Legacy helper: validate the entire program and return main's statements."""
+        return next(fn.body for fn in self.parse_program().functions if fn.name == "main")
 
     def block(self) -> tuple[Stmt, ...]:
         self.expect("{")
@@ -85,15 +128,20 @@ class Parser:
             then_body = self.block()
             else_body = self.block() if self.accept("else") else ()
             return Stmt("if", token, expr=condition, then_body=then_body, else_body=else_body)
-        if token.kind == "IDENT":
+        if self.accept("while"):
+            condition = self.expression()
+            return Stmt("while", token, expr=condition, then_body=self.block())
+        if self.accept("return"):
+            return Stmt("return", token, expr=self.expression())
+        if token.kind == "IDENT" and self.tokens[self.index + 1].kind == "=":
             self.index += 1
-            if token.text == "println":
-                self.expect("(")
-                expression = self.expression()
-                self.expect(")")
-                return Stmt("println", token, expr=expression)
             self.expect("=")
             return Stmt("assign", token, name=token.text, expr=self.expression())
+        if token.kind == "IDENT":
+            expression = self.expression()
+            if expression.kind != "call":
+                raise SamhusError("Only function calls may be expression statements", token.line, token.column)
+            return Stmt("expr", token, expr=expression)
         raise SamhusError(f"Unexpected statement {token.kind!r}", token.line, token.column)
 
     def expression(self, min_precedence: int = 1) -> Expr:
@@ -109,7 +157,17 @@ class Parser:
         elif self.accept("false"):
             left = Expr("literal", token, False)
         elif self.accept("IDENT"):
-            left = Expr("name", token, token.text)
+            if self.accept("("):
+                arguments: list[Expr] = []
+                if self.current.kind != ")":
+                    while True:
+                        arguments.append(self.expression())
+                        if not self.accept(","):
+                            break
+                self.expect(")")
+                left = Expr("call", token, token.text, args=tuple(arguments))
+            else:
+                left = Expr("name", token, token.text)
         elif self.accept("("):
             left = self.expression()
             self.expect(")")
@@ -125,4 +183,10 @@ class Parser:
 
 
 def parse(source: str) -> tuple[Stmt, ...]:
+    """Backwards-compatible API: parse all functions, return the main body."""
     return Parser(source).parse()
+
+
+def parse_program(source: str) -> Program:
+    """Return the complete experimental AST with all function declarations."""
+    return Parser(source).parse_program()

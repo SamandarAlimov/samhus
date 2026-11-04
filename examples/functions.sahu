@@ -1,0 +1,18 @@
+// Experimental Samhus syntax: function calls, recursion, loops and return.
+fn factorial(number) {
+    if number <= 1 {
+        return 1
+    }
+    return number * factorial(number - 1)
+}
+
+fn main() {
+    println("Samhus factorial:")
+    println(factorial(5))
+
+    var counter = 0
+    while counter < 3 {
+        println(counter)
+        counter = counter + 1
+    }
+}

@@ -12,9 +12,9 @@ class Token:
     column: int
 
 
-KEYWORDS = {"fn", "let", "var", "if", "else", "true", "false"}
+KEYWORDS = {"fn", "let", "var", "if", "else", "while", "return", "true", "false"}
 TWO_CHAR = {"==", "!=", "<=", ">=", "&&", "||"}
-ONE_CHAR = set("+-*/=(){};!<>")
+ONE_CHAR = set("+-*/=(){};!<>,")
 ESCAPES = {"n": "\n", "t": "\t", "r": "\r", '"': '"', "\\": "\\"}
 
 
