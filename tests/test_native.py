@@ -242,7 +242,7 @@ fn main() -> Unit { println(sum(first(), second())) }"""
         source = main('println("Standalone")')
         program = self.build_run(source)
         self.assertEqual(program.returncode, 0, program.stderr)
-        self.assertEqual(program.stdout, "Standalone\\n")
+        self.assertEqual(program.stdout, "Standalone\n")
 
     def test_native_false_branch_lazy(self):
         r = self.build_run(main("println(false && (1/0==1)); println(true || (1/0==1))"))
