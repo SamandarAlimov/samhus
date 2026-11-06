@@ -9,6 +9,10 @@ from .astdump import dump_ast
 from .formatter import format_program, contains_comments
 from .bytecode import compile_source
 from .vm import run_vm
+from .native_c import emit_c
+import shutil
+import subprocess
+import tempfile
 
 
 def positive_int(text: str) -> int:
@@ -45,6 +49,12 @@ def main(argv: list[str] | None = None) -> int:
     fmt_flags.add_argument("--write", action="store_true", help="Rewrite the file in place")
     disasm_parser = subcommands.add_parser("disasm", help="Inspect experimental compiled bytecode")
     disasm_parser.add_argument("file", type=Path)
+    emit_parser = subcommands.add_parser("emit-c", help="Generate C11 source from experimental typed subset")
+    emit_parser.add_argument("file", type=Path)
+    native_parser = subcommands.add_parser("native", help="Build standalone executable using system C compiler")
+    native_parser.add_argument("file", type=Path)
+    native_parser.add_argument("-o", "--output", required=True, type=Path)
+    native_parser.add_argument("--cc", default=None, help="Compiler executable (default: cc/gcc/clang)")
     args = parser.parse_args(argv)
     try:
         source = args.file.read_text(encoding="utf-8")
@@ -56,6 +66,27 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Type check OK: {args.file}")
         elif args.command == "ast":
             print(dump_ast(source))
+        elif args.command == "emit-c":
+            sys.stdout.write(emit_c(source))
+        elif args.command == "native":
+            compiled = emit_c(source)
+            compiler = args.cc or next((name for name in ("cc", "gcc", "clang") if shutil.which(name)), None)
+            if compiler is None or shutil.which(compiler) is None:
+                print("samhus: no C compiler found (cc/gcc/clang required)", file=sys.stderr)
+                return 1
+            with tempfile.TemporaryDirectory(prefix="samhus-native-") as temp:
+                c_file = Path(temp) / "program.c"
+                c_file.write_text(compiled, encoding="utf-8")
+                output = args.output.resolve()
+                result = subprocess.run(
+                    [compiler, "-std=c11", "-O2", str(c_file), "-o", str(output)],
+                    text=True, capture_output=True, check=False,
+                )
+                if result.returncode != 0:
+                    print("samhus: native C compiler failed:", file=sys.stderr)
+                    print(result.stderr, file=sys.stderr)
+                    return 1
+                print(f"Native executable: {output}")
         elif args.command == "disasm":
             sys.stdout.write(compile_source(source).disassemble())
         elif args.command == "fmt":
