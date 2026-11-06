@@ -14,7 +14,9 @@ Only owner-approved decisions are final. Technical prototypes are reversible.
 | Formatting conventions | Experimental | AST formatter; does not preserve comments. |
 | Runtime limits | Experimental | Step/call depth ceilings; not a sandbox. |
 | Compiler implementation language | Undecided | Python bootstrap does not decide final compiler technology. |
-| LLVM/Wasm/native targets | Undecided | No selected backend architecture. |
+| Bytecode compiler and VM | Experimental | Python-hosted in-memory compilation and VM; not approved as final backend. |
+| Bytecode verification | Experimental | Checks internal jump, stack and scope invariants. |
+| LLVM/Wasm/native targets | Undecided | No selected production backend architecture. |
 | License and open-source policy | Undecided | No LICENSE file; public repo is not automatically open-source. |
 | Memory model | Undecided | No approved GC, ownership or manual memory model. |
 | Platform priorities | Undecided | Require explicit prioritization. |

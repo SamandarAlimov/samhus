@@ -37,3 +37,24 @@ Neither the syntax nor the .sahu suffix is an approved long-term standard.
 - The documentation and decision log still identify unresolved decisions.
 
 This is not a production compiler, finalized semantics or security sandbox.
+
+
+## 2026-11-06 — compiler and multi-platform foundations, prototype 0.0.4
+
+- Implemented independent in-memory stack-bytecode compiler and VM.
+- Added explicit control flow for if/else, while, recursion and short-circuit
+  boolean logic, with source-positioned diagnostics and typed guards.
+- Added control-flow verification of reachable instructions, jump targets,
+  stack consistency and lexical scopes.
+- Added differential tests including 600 deterministic generated programs;
+  regression suite expanded to 177 unittest methods.
+- Integrated VM selection and disassembly in CLI; kept tree interpreter
+  as default for compatibility.
+- Added local editable CLI packaging, 3 OS x 2 Python cross-platform CI
+  matrix and a lightweight two-backend benchmark harness.
+- Initial packaging CI uncovered a build dependency problem on clean runners;
+  switched to standard isolated build and reran the complete matrix.
+- Latest six CI jobs (Ubuntu, macOS, Windows; Python 3.11 and 3.13):
+  all completed successfully at this milestone.
+- No native backend, portable artifact format or C++/Python language parity
+  has been claimed.

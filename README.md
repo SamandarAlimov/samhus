@@ -1,29 +1,47 @@
-# Samhus — experimental programming language
+# Samhus — Alsamos programming-language research project
 
-**Samhus** is a new programming-language research project for **Alsamos**.
+**Samhus** is Alsamos's founder-approved programming-language name.
+The current software is **prototype 0.0.4**, not a production-ready language
+or an implementation comparable in completeness to C++ or Python 3.13.
 
-> **Prototype 0.0.3** — a Python-based research interpreter with optional
-> type annotations, static analysis and developer tooling.
-> **Not** a production language, native compiler, security sandbox, or final specification.
+Two independent execution paths are available for the experimental grammar:
 
-The name **Samhus** is confirmed by the project owner. The file extension
-**.sahu is provisional** and the license remains **undecided**.
+1. **Tree interpreter:** directly evaluates the parsed syntax tree.
+2. **Stack bytecode compiler + VM:** compiles parsed code to in-memory
+   bytecode instructions, checks control-flow invariants, then executes
+   them using a separate Python-hosted virtual machine.
 
-## Run Samhus today
+Both use Python as their host. The VM is **not native compilation**, and the
+language still needs modules, collections, a production type specification,
+an extensive standard library, native/Wasm backends, tooling and hardening.
 
-Requires **Python 3.11+**. No extra dependencies.
+## Install and try
+
+Requires Python 3.11+.
 
 ~~~bash
 git clone https://github.com/SamandarAlimov/samhus.git
 cd samhus
-python -m samhus run examples/hello.sahu
-python -m samhus run examples/functions.sahu
-python -m samhus run examples/typed.sahu --typecheck
-python -m samhus typecheck examples/typed.sahu
+python -m pip install -e .
+samhus --version
+samhus run examples/hello.sahu
+samhus run examples/bytecode.sahu --backend vm --typecheck
+samhus disasm examples/bytecode.sahu
 python -m unittest discover -s tests -v
 ~~~
 
-Example:
+You can also run without installing:
+
+~~~bash
+python -m samhus run examples/hello.sahu --backend vm
+python -m samhus run examples/typed.sahu --backend tree --typecheck
+~~~
+
+There is **no PyPI package publication or official 0.9.9 release**.
+The local package name is samhus-prototype to distinguish these experiments
+from any future official distribution.
+
+## Language example
 
 ~~~text
 fn factorial(n: Int) -> Int {
@@ -34,8 +52,7 @@ fn factorial(n: Int) -> Int {
 }
 
 fn main() -> Unit {
-    let company: String = "Alsamos"
-    println(company)
+    println("Alsamos")
     println(factorial(5))
 }
 ~~~
@@ -47,61 +64,74 @@ Alsamos
 120
 ~~~
 
-## Commands
+## CLI reference
 
-| Command | Behavior |
+| Command | Meaning |
 | --- | --- |
-| python -m samhus run FILE | Interpret a trusted local program. |
-| python -m samhus run FILE --typecheck | Run the experimental static analyzer before interpreting. |
-| python -m samhus run FILE --max-steps 1000 | Set an execution step budget, not a sandbox. |
-| python -m samhus check FILE | Syntax-only check, kept compatible with previous releases. |
-| python -m samhus typecheck FILE | Opt-in static checker, accepts dynamic Any values. |
-| python -m samhus ast FILE | Dump the full AST as JSON for experiments and tooling. |
-| python -m samhus fmt FILE | Output canonical source to stdout without changing the file. |
-| python -m samhus fmt FILE --check | Exit non-zero if source differs from formatter output. |
-| python -m samhus fmt FILE --write | Rewrite source only if it contains no comments; comments are not preserved by the formatter. |
-| python -m unittest discover -s tests -v | Run regression tests. |
+| samhus run FILE | Run tree interpreter (legacy default) |
+| samhus run FILE --backend vm | Run compiled bytecode through VM |
+| samhus run FILE --backend vm --typecheck | Opt-in static check then VM execution |
+| samhus run FILE --max-steps 1000 | Bound execution steps (not sandboxing) |
+| samhus check FILE | Parse syntax only |
+| samhus typecheck FILE | Experimental static type check |
+| samhus ast FILE | Print JSON syntax tree |
+| samhus disasm FILE | Print human-readable bytecode and source positions |
+| samhus fmt FILE | Print canonical formatting |
+| samhus fmt FILE --check | Fail if source is not canonical |
+| samhus fmt FILE --write | Rewrite only when no comments would be lost |
 
-The formatter adds parentheses around compound expressions.
-It is deterministic/idempotent but does **not** preserve comments; therefore
-the CLI refuses to overwrite files containing comments. Review formatter
-stdout before editing files manually.
+Formatter warning: comments are not preserved by the formatter. To avoid
+silently deleting comments, fmt --write refuses files that contain them.
 
-## Features in this prototype
+## Validation
 
-- Lexer, recursive-descent parser, source-location errors and AST model.
-- Named functions, parameter passing, forward references, recursion, return.
-- Lexical scopes, let/var bindings, if/else, while.
-- Integers, strings, booleans, arithmetic, comparisons, logic, short-circuiting.
-- Optional Int, String, Bool, Unit, Any annotations on
-  declarations and function parameters, plus -> Type return annotations.
-- Conservative opt-in static type checking; type annotations are also
-  checked at runtime for function arguments/results and variable values.
-- Developer tools: typed example, syntax checker, JSON AST viewer, safe
-  canonical formatter, test suite and CI on Python 3.11/3.13.
+- 177 unittest test methods and a deterministic differential corpus that
+  additionally checks 600 generated arithmetic, boolean and loop programs.
+- CI tests Python 3.11 and 3.13 on **Ubuntu, Windows and macOS** (6 jobs).
+- Each job exercises regression tests, editable CLI packaging, tree/VM runs,
+  type checking, bytecode disassembly and a benchmark smoke test.
+- Compilation verifies internal bytecode jump targets, stack heights and
+  lexical scope consistency before execution.
 
-## Important limitations
+Check the live GitHub Actions status instead of assuming a green badge:
+https://github.com/SamandarAlimov/samhus/actions
 
-1. Static checking is **not sound or complete**: Any/unannotated inputs can
-   conceal errors until runtime; it does not guarantee program termination.
-2. The prototype has no imports/modules, classes/structs, arrays, floats,
-   async functions, native executable output, Wasm/LLVM compiler, package
-   registry or IDE extension.
-3. Resource and recursion limits are **not** a security boundary. Do not
-   run untrusted Samhus programs.
-4. Syntax, memory model, license, compiler implementation language, source
-   extension and target platforms have not been finalized.
+## Benchmarking
 
-## Documentation and governance
+~~~bash
+python scripts/benchmark.py --repeat 5
+~~~
 
-- [Language reference (experimental)](docs/LANGUAGE.md)
-- [Type checker design and caveats](docs/STATIC_TYPES.md)
-- [Decision log](docs/DECISIONS.md)
+This benchmarks two Python-hosted implementations of Samhus; it **cannot**
+establish parity with optimized C++ or Python 3.13 language ecosystems.
+
+## Critical outstanding work
+
+- Define and approve stable language semantics and source extension.
+- Real native compiler (LLVM or another backend), IR and ABI research.
+- Data structures, modules/packages, exceptions/results, richer types.
+- Static type soundness, memory model, concurrency and system I/O.
+- Standard library, debugging/IDE integrations, release management.
+- Security review, fuzzing, compatibility and independent benchmarks.
+
+See [Engineering targets](docs/COMPETITIVE_TARGETS.md) for measurable gates.
+No version number implies quality or completeness without satisfying them.
+
+## Source and governance
+
+- [Bytecode architecture](docs/BYTECODE.md)
+- [Experimental language reference](docs/LANGUAGE.md)
+- [Static type checker notes](docs/STATIC_TYPES.md)
 - [Roadmap](docs/ROADMAP.md)
+- [Decision log](docs/DECISIONS.md)
 - [Engineering log](docs/ENGINEERING_LOG.md)
-- [Agent/contributor rules](AGENTS.md)
+- [Changelog](CHANGELOG.md)
+- [AGENTS.md](AGENTS.md)
 
-No LICENSE file has been added: a publicly visible repository is not the
-same thing as an open-source grant. Only confirmed founder decisions are
-recorded as such; prototype choices remain reversible. Other Alsamos repos
-and the live backend have not been modified.
+**Samhus** is the confirmed name. **.sahu** is a provisional file suffix
+used only for experiments; formal approval is pending. No LICENSE has been
+selected, so this public repository is **not automatically open-source**.
+Python bootstrapping, VM opcodes, type rules, and target platforms are
+reversible research choices, not founder-approved production commitments.
+
+No other Alsamos repository, Superapp or production backend was changed.

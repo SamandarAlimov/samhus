@@ -2,6 +2,15 @@
 
 Prototype iterations, not stable releases.
 
+## 0.0.4 — 2026-11-06
+
+- In-memory bytecode compiler and independently implemented stack VM.
+- New run --backend vm and disasm CLI options.
+- Control-flow bytecode verification for stack and scope invariants.
+- Differential regression suite including 600 generated program cases.
+- Installable local CLI package; 6-environment GitHub Actions matrix.
+- Benchmark harness comparing prototype interpreter and VM; not C++ parity.
+
 ## 0.0.3 — 2026-11-06
 
 - Experimental static type annotations: Int, String, Bool, Unit, Any.

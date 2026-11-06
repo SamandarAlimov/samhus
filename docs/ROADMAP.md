@@ -22,15 +22,19 @@
 - Introduce intermediate representation, diagnostics and conformance
   cases after review.
 
-## Milestone D — compiler backend research: not started
+## Milestone D — compiler backend research: partially prototyped
 
-- Compare typed IR, bytecode VM, Wasm and LLVM native backends.
+- [x] Create in-memory bytecode compiler, VM and control-flow verifier.
+- [x] Differentially compare tree and VM output across hundreds of generated cases.
+- [ ] Compare typed IR, Wasm and LLVM native backends.
 - Benchmark real programs and choose architecture after owner approval.
 - Validate memory model, ABI, interoperability and portability.
 
 ## Milestone E — developer ecosystem: not started
 
-- Explore package manager, LSP/IDE integration, formatter with comment
+- [x] Installable local Python-hosted CLI package.
+- [x] CI on Ubuntu, Windows and macOS with Python 3.11 and 3.13.
+- [ ] Explore package manager, LSP/IDE integration, formatter with comment
   preservation, debugger, release management and security audits.
 - Evaluate prototypes with actual Alsamos Mini Apps / Cloud needs.
 
