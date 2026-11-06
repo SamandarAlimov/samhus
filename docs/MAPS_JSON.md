@@ -42,3 +42,6 @@ This is not AI inference, validation against user-provided schemas,
 a complete memory-safe runtime, or a security sandbox. Deeply nested
 untrusted Samhus expressions may still exhaust Python runtime resources.
 No modules, native Map compilation, streaming JSON, or Float type yet.
+
+Unicode hardening: json_parse and json_encode reject unpaired UTF-16
+surrogates, reporting Samhus errors instead of host encoding exceptions.

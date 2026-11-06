@@ -254,6 +254,31 @@ class MapsAndJSONTests(unittest.TestCase):
         self.static_failure(src('map_set({},"a")'), "expects 3 arguments")
         self.runtime_failure(src('map_has({})'), "expects 2 arguments")
 
+    def test_json_rejects_escaped_surrogate(self):
+        token = Token("TEST", "", 1, 1)
+        with self.assertRaisesRegex(SamhusError, "unpaired Unicode surrogate"):
+            decode_json(r'"\ud800"', token)
+
+    def test_json_rejects_escaped_surrogate_object_key(self):
+        token = Token("TEST", "", 1, 1)
+        with self.assertRaisesRegex(SamhusError, "unpaired Unicode surrogate"):
+            decode_json(r'{"\ud800":1}', token)
+
+    def test_json_rejects_direct_surrogate_text(self):
+        token = Token("TEST", "", 1, 1)
+        with self.assertRaisesRegex(SamhusError, "unpaired Unicode surrogate"):
+            decode_json('"' + chr(0xd800) + '"', token)
+
+    def test_json_encode_rejects_surrogate_value(self):
+        token = Token("TEST", "", 1, 1)
+        with self.assertRaisesRegex(SamhusError, "unpaired Unicode surrogate"):
+            encode_json(chr(0xd800), token)
+
+    def test_json_encode_rejects_surrogate_map_key(self):
+        token = Token("TEST", "", 1, 1)
+        with self.assertRaisesRegex(SamhusError, "unpaired Unicode surrogate"):
+            encode_json(MapValue(((chr(0xd800),1),)), token)
+
     def test_json_size_limit(self):
         t=Token("TEST","",1,1)
         with patch("samhus.json_bridge.MAX_JSON_BYTES",20):
