@@ -25,6 +25,7 @@ class Stmt:
     mutable: bool = False
     then_body: tuple["Stmt", ...] = ()
     else_body: tuple["Stmt", ...] = ()
+    declared_type: str | None = None
 
 
 @dataclass(frozen=True)
@@ -33,11 +34,16 @@ class Function:
     token: Token
     params: tuple[str, ...]
     body: tuple[Stmt, ...]
+    param_types: tuple[str | None, ...] = ()
+    return_type: str | None = None
 
 
 @dataclass(frozen=True)
 class Program:
     functions: tuple[Function, ...]
+
+
+TYPE_NAMES = frozenset({"Int", "String", "Bool", "Unit", "Any"})
 
 
 PRECEDENCE = {
@@ -70,6 +76,12 @@ class Parser:
             raise SamhusError(f"Expected {kind!r}, found {token.kind!r}", token.line, token.column)
         return result
 
+    def parse_type(self) -> str:
+        token = self.expect("IDENT")
+        if token.text not in TYPE_NAMES:
+            raise SamhusError(f"Unknown type {token.text!r}", token.line, token.column)
+        return token.text
+
     def parse_program(self) -> Program:
         functions: list[Function] = []
         names: set[str] = set()
@@ -83,17 +95,20 @@ class Parser:
             names.add(name.text)
             self.expect("(")
             params: list[str] = []
+            param_types: list[str | None] = []
             if self.current.kind != ")":
                 while True:
                     param = self.expect("IDENT")
                     if param.text in params:
                         raise SamhusError(f"Duplicate parameter {param.text!r}", param.line, param.column)
                     params.append(param.text)
+                    param_types.append(self.parse_type() if self.accept(":") else None)
                     if not self.accept(","):
                         break
             self.expect(")")
+            return_type = self.parse_type() if self.accept("->") else None
             body = self.block()
-            functions.append(Function(name.text, name, tuple(params), body))
+            functions.append(Function(name.text, name, tuple(params), body, tuple(param_types), return_type))
         entry = next((fn for fn in functions if fn.name == "main"), None)
         if entry is None:
             token = self.current
@@ -121,8 +136,9 @@ class Parser:
         token = self.current
         if self.accept("let") or self.accept("var"):
             name = self.expect("IDENT")
+            declared_type = self.parse_type() if self.accept(":") else None
             self.expect("=")
-            return Stmt("declare", token, name.text, self.expression(), token.kind == "var")
+            return Stmt("declare", token, name.text, self.expression(), token.kind == "var", declared_type=declared_type)
         if self.accept("if"):
             condition = self.expression()
             then_body = self.block()

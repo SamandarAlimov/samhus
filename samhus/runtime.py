@@ -16,6 +16,17 @@ Value = int | str | bool | None
 class Binding:
     value: Value
     mutable: bool
+    declared_type: str | None = None
+
+
+def value_type(value: Value) -> str:
+    if type(value) is bool:
+        return "Bool"
+    if type(value) is int:
+        return "Int"
+    if type(value) is str:
+        return "String"
+    return "Unit"
 
 
 class _ReturnSignal(Exception):
@@ -44,6 +55,10 @@ class Interpreter:
         if self.steps > self.max_steps:
             self.error(node, f"Execution step limit exceeded ({self.max_steps})")
 
+    def enforce_type(self, declared: str | None, value: Value, node: Expr | Stmt | Token) -> None:
+        if declared is not None and declared != "Any" and declared != value_type(value):
+            self.error(node, f"Type mismatch: expected {declared}, got {value_type(value)}")
+
     def lookup(self, name: str, node: Expr | Stmt) -> Binding:
         for scope in reversed(self.scopes):
             if name in scope:
@@ -66,16 +81,21 @@ class Interpreter:
             self.error(token, f"Function {name!r} expects {len(function.params)} arguments, got {len(args)}")
         if self.call_depth >= self.max_calls:
             self.error(token, f"Function call depth limit exceeded ({self.max_calls})")
+        for value, declared in zip(args, function.param_types):
+            self.enforce_type(declared, value, token)
         previous_scopes = self.scopes
         self.scopes = [
-            {key: Binding(value, False) for key, value in zip(function.params, args)}
+            {key: Binding(value, False, declared) for key, value, declared in
+             zip(function.params, args, function.param_types)}
         ]
         self.call_depth += 1
         try:
             try:
                 self.execute(function.body)
             except _ReturnSignal as signal:
+                self.enforce_type(function.return_type, signal.value, token)
                 return signal.value
+            self.enforce_type(function.return_type, None, token)
             return None
         finally:
             self.call_depth -= 1
@@ -152,12 +172,16 @@ class Interpreter:
                     scope = self.scopes[-1]
                     if stmt.name in scope:
                         self.error(stmt, f"Variable {stmt.name!r} already declared")
-                    scope[stmt.name] = Binding(self.evaluate(stmt.expr), stmt.mutable)
+                    value = self.evaluate(stmt.expr)
+                    self.enforce_type(stmt.declared_type, value, stmt)
+                    scope[stmt.name] = Binding(value, stmt.mutable, stmt.declared_type)
                 elif stmt.kind == "assign":
                     binding = self.lookup(stmt.name, stmt)
                     if not binding.mutable:
                         self.error(stmt, f"Cannot assign to immutable variable {stmt.name!r}")
-                    binding.value = self.evaluate(stmt.expr)
+                    value = self.evaluate(stmt.expr)
+                    self.enforce_type(binding.declared_type, value, stmt)
+                    binding.value = value
                 elif stmt.kind == "expr":
                     self.evaluate(stmt.expr)
                 elif stmt.kind == "return":
