@@ -39,7 +39,14 @@ class TypedIR:
                 for instr in block.instructions:
                     state = entries[offset]
                     argument = "" if instr.arg is None else " " + repr(instr.arg)
-                    lines.append(f"    {offset:04} {instr.op}{argument} ; stack={state.stack!r}")
+                    current = ", ".join(
+                        name + ":" + kind
+                        for scope in state.scopes for name, kind in scope
+                    ) or "(none)"
+                    lines.append(
+                        f"    {offset:04} {instr.op}{argument} "
+                        f"; stack={state.stack!r} locals={current}"
+                    )
                     offset += 1
             lines.append("")
         return "\n".join(lines).rstrip() + "\n"
