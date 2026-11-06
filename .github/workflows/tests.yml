@@ -1,33 +1,39 @@
-name: Samhus prototype tests
+name: Samhus prototype validation
 on:
   push:
   pull_request:
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.11', '3.13']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Compile Python bootstrap
-        run: python -m compileall -q samhus
-      - name: Run all tests
+      - name: Compile Python prototype
+        run: python -m compileall -q samhus scripts
+      - name: Run all regression and differential tests
         run: python -m unittest discover -s tests -v
-      - name: Type-check annotated example
-        run: python -m samhus typecheck examples/typed.sahu
-      - name: Run annotated example
-        run: python -m samhus run examples/typed.sahu --typecheck
-      - name: Check deterministic formatter
-        run: python -m samhus fmt examples/typed.sahu
-      - name: Dump abstract syntax tree
-        run: python -m samhus ast examples/typed.sahu
-      - name: Run hello world
-        run: python -m samhus run examples/hello.sahu
-      - name: Run function example
+      - name: Install local CLI package
+        run: python -m pip install --no-build-isolation -e .
+      - name: Validate installed samhus CLI
+        run: samhus --version
+      - name: Run tree backend
         run: python -m samhus run examples/functions.sahu
-      - name: Check syntax
-        run: python -m samhus check examples/basics.sahu
+      - name: Run bytecode VM backend
+        run: python -m samhus run examples/functions.sahu --backend vm
+      - name: Run typed VM program
+        run: python -m samhus run examples/typed.sahu --typecheck --backend vm
+      - name: Check typed program
+        run: python -m samhus typecheck examples/typed.sahu
+      - name: Disassemble compiled program
+        run: python -m samhus disasm examples/typed.sahu
+      - name: Check AST serializer
+        run: python -m samhus ast examples/typed.sahu
+      - name: Run smoke benchmark
+        run: python scripts/benchmark.py --repeat 1

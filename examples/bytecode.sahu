@@ -1,0 +1,15 @@
+// Run via either the experimental tree or bytecode VM backend.
+fn sum_of_squares(n: Int) -> Int {
+    var i: Int = 0
+    var sum: Int = 0
+    while i < n {
+        sum = sum + i * i
+        i = i + 1
+    }
+    return sum
+}
+
+fn main() -> Unit {
+    println("Samhus bytecode demonstration")
+    println(sum_of_squares(10))
+}
