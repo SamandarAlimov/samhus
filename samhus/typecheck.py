@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from .errors import SamhusError
 from .parser import Expr, Function, Program, Stmt, parse_program
 from .stdlib import BUILTIN_SIGNATURES
-from .values import element_type, map_value_type
+from .values import element_type, map_value_type, NULL
 
 Type = str
 ANY = "Any"
@@ -74,6 +74,10 @@ class TypeChecker:
                 return "Bool"
             if type(expr.value) is int:
                 return "Int"
+            if type(expr.value) is float:
+                return "Float"
+            if expr.value is NULL:
+                return "Null"
             if type(expr.value) is str:
                 return "String"
             self.fail(expr, "Unsupported literal type")
@@ -170,8 +174,12 @@ class TypeChecker:
             return function.return_type or ANY
         if expr.kind == "unary":
             typ = self.expr_type(expr.right)
-            self.require(typ, "Bool" if expr.value == "!" else "Int", expr)
-            return "Bool" if expr.value == "!" else "Int"
+            if expr.value == "!":
+                self.require(typ, "Bool", expr)
+                return "Bool"
+            if typ not in {"Int", "Float", ANY}:
+                self.require(typ, "Int", expr)
+            return typ
         if expr.kind == "binary":
             left = self.expr_type(expr.left)
             op = expr.value
@@ -183,19 +191,28 @@ class TypeChecker:
             right = self.expr_type(expr.right)
             if op in {"==", "!="}:
                 return "Bool"
-            if op == "+":
-                if left == "String" and right == "String":
-                    return "String"
-                if left == ANY or right == ANY:
-                    # A dynamic operand could be an Int or a String.
-                    if left not in {ANY, "Int", "String"} or right not in {ANY, "Int", "String"}:
-                        self.fail(expr, "'+' requires two integers or two strings")
-                    return ANY
             if op in {"+", "-", "*", "/", "<", "<=", ">", ">="}:
-                self.require(left, "Int", expr.left)
-                self.require(right, "Int", expr.right)
-                if op in {"<", "<=", ">", ">="}:
+                ordering = op in {"<", "<=", ">", ">="}
+                if op == "+" and left == "String" and right == "String":
+                    return "String"
+                allowed = {"Int", "Float", ANY}
+                if op == "+":
+                    allowed.add("String")
+                if left not in allowed:
+                    self.require(left, "Int", expr.left)
+                if right not in allowed:
+                    self.require(right, "Int", expr.right)
+                if op == "+" and (left == "String" or right == "String"):
+                    if left == ANY or right == ANY:
+                        return ANY
+                    # The other known type is numeric, not String.
+                    self.require(left if left != "String" else right, "String", expr)
+                if ordering:
                     return "Bool"
+                if left == ANY or right == ANY:
+                    return ANY
+                if "Float" in (left, right):
+                    return "Float"
                 return "Int"
             self.fail(expr, f"Unsupported operator {op}")
         self.fail(expr, "Unsupported expression")
