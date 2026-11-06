@@ -1,0 +1,17 @@
+// Unreleased native Value IR experiment: scoped locals, loops, and PHI.
+fn main() -> Unit {
+    var index: Int = 0
+    var total: Int = 0
+    while index < 10 {
+        if index < 5 {
+            total = total + index
+        } else {
+            total = total + index
+        }
+        index = index + 1
+    }
+    let finished: Bool = total == 45
+    assert(finished)
+    println(total)
+    println(finished && true)
+}
