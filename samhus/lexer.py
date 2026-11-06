@@ -18,7 +18,16 @@ ONE_CHAR = set("+-*/=(){}[];!<>,:")
 ESCAPES = {"n": "\n", "t": "\t", "r": "\r", '"': '"', "\\": "\\"}
 
 
+# Prototype resource guards. These are not a secure sandbox or final limits.
+MAX_SOURCE_CHARS = 1_000_000
+MAX_TOKENS = 250_000
+MAX_NUMBER_CHARS = 4_096
+MAX_STRING_CHARS = 100_000
+
+
 def lex(source: str) -> list[Token]:
+    if len(source) > MAX_SOURCE_CHARS:
+        raise SamhusError(f"Source size limit exceeded ({MAX_SOURCE_CHARS} characters)", 1, 1)
     tokens: list[Token] = []
     index, line, column = 0, 1, 1
 
@@ -34,6 +43,8 @@ def lex(source: str) -> list[Token]:
         return character
 
     while index < len(source):
+        if len(tokens) >= MAX_TOKENS:
+            raise SamhusError(f"Token count limit exceeded ({MAX_TOKENS})", line, column)
         char = source[index]
         if char.isspace():
             step()
@@ -70,6 +81,8 @@ def lex(source: str) -> list[Token]:
                     raise SamhusError("Float exponent requires digits", line, column)
                 while index < len(source) and source[index].isascii() and source[index].isdigit():
                     value += step()
+            if len(value) > MAX_NUMBER_CHARS:
+                raise SamhusError(f"Numeric literal length limit exceeded ({MAX_NUMBER_CHARS})", start_line, start_column)
             tokens.append(Token("FLOAT" if fractional else "NUMBER", value, start_line, start_column))
             continue
         if char == '"':
@@ -88,6 +101,8 @@ def lex(source: str) -> list[Token]:
             if index >= len(source):
                 raise SamhusError("Unterminated string literal", start_line, start_column)
             step()
+            if len(value) > MAX_STRING_CHARS:
+                raise SamhusError(f"String literal length limit exceeded ({MAX_STRING_CHARS})", start_line, start_column)
             tokens.append(Token("STRING", value, start_line, start_column))
             continue
         pair = source[index:index + 2]

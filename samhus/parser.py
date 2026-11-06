@@ -49,6 +49,8 @@ class Program:
 TYPE_NAMES = frozenset({"Int", "Float", "Decimal", "String", "Bool", "Null", "Unit", "Any", "List", "Map", "Result"})
 
 
+MAX_EXPRESSION_DEPTH = 160
+
 PRECEDENCE = {
     "||": 1, "&&": 2, "==": 3, "!=": 3,
     "<": 4, "<=": 4, ">": 4, ">=": 4,
@@ -60,6 +62,7 @@ class Parser:
     def __init__(self, source: str):
         self.tokens = lex(source)
         self.index = 0
+        self.expression_depth = 0
 
     @property
     def current(self) -> Token:
@@ -179,6 +182,19 @@ class Parser:
         raise SamhusError(f"Unexpected statement {token.kind!r}", token.line, token.column)
 
     def expression(self, min_precedence: int = 1) -> Expr:
+        self.expression_depth += 1
+        try:
+            if self.expression_depth > MAX_EXPRESSION_DEPTH:
+                token = self.current
+                raise SamhusError(
+                    f"Expression nesting limit exceeded ({MAX_EXPRESSION_DEPTH})",
+                    token.line, token.column,
+                )
+            return self._expression_inner(min_precedence)
+        finally:
+            self.expression_depth -= 1
+
+    def _expression_inner(self, min_precedence: int) -> Expr:
         token = self.current
         if self.accept("-") or self.accept("!"):
             left = Expr("unary", token, token.kind, right=self.expression(7))
