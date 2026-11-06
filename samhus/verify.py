@@ -12,7 +12,7 @@ class BytecodeValidationError(ValueError):
     pass
 
 
-def verify_function(function: Code) -> None:
+def verify_function(function: Code) -> dict[int, tuple[int, int]]:
     code = function.instructions
     if not code:
         raise BytecodeValidationError(f"{function.name}: empty function body")
@@ -97,6 +97,7 @@ def verify_function(function: Code) -> None:
                 raise BytecodeValidationError(
                     f"{function.name}: conflicting stack/scope states at {destination}: {previous} vs {new_state}"
                 )
+    return states
 
 
 def verify_bytecode(program: Bytecode) -> None:
