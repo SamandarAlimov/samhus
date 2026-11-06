@@ -1,0 +1,11 @@
+// Independent experimental Value IR -> C11 example.
+// Only pure typed Int/Bool and if/short-circuit are supported.
+fn main() -> Unit {
+    println(2 + 3 * 4)
+    if 10 > 5 {
+        println(true && false)
+    } else {
+        println(false)
+    }
+    println(false || true)
+}
