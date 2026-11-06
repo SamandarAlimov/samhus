@@ -136,6 +136,9 @@ class VirtualMachine:
             elif op == "ASSERT_MUTABLE":
                 if not self.binding(frame, arg, token).mutable:
                     self.error(token, f"Cannot assign to immutable variable {arg!r}")
+            elif op == "ASSERT_FRESH":
+                if arg in frame.scopes[-1]:
+                    self.error(token, f"Variable {arg!r} already declared")
             elif op == "DECLARE":
                 name, mutable, type_name = arg
                 scope = frame.scopes[-1]

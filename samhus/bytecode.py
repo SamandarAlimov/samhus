@@ -99,6 +99,7 @@ class _Emitter:
     def statement(self, stmt: Stmt) -> None:
         self.emit("TICK", None, stmt.token)
         if stmt.kind == "declare":
+            self.emit("ASSERT_FRESH", stmt.name, stmt.token)
             self.expression(stmt.expr)
             self.emit("DECLARE", (stmt.name, stmt.mutable, stmt.declared_type), stmt.token)
         elif stmt.kind == "assign":
