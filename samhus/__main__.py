@@ -37,6 +37,8 @@ def main(argv: list[str] | None = None) -> int:
     run_parser.add_argument("--max-steps", type=positive_int, default=100_000,
                             help="Execution budget (default: 100000); not a security sandbox")
     run_parser.add_argument("--typecheck", action="store_true", help="Run experimental static type checker first")
+    run_parser.add_argument("--optimize", action="store_true",
+                            help="Enable safe experimental IR literal folding (requires --backend ir)")
     run_parser.add_argument("--backend", choices=("tree", "vm", "ir"), default="tree",
                             help="Execution backend: tree, VM, or verified IR lowered to VM (default: tree)")
     check_parser = subcommands.add_parser("check", help="Check syntax only (not types)")
@@ -53,6 +55,8 @@ def main(argv: list[str] | None = None) -> int:
     ir_parser = subcommands.add_parser("ir", help="Inspect validated basic-block IR, stack and scope states")
     ir_parser.add_argument("file", type=Path)
     ir_parser.add_argument("--types", action="store_true", help="Show experimental stack value types (requires static checker)")
+    ir_parser.add_argument("--optimize", action="store_true",
+                           help="Show verified IR after pure literal folding")
     disasm_parser = subcommands.add_parser("disasm", help="Inspect experimental compiled bytecode")
     disasm_parser.add_argument("file", type=Path)
     emit_parser = subcommands.add_parser("emit-c", help="Generate C11 source from experimental typed subset")
@@ -62,6 +66,10 @@ def main(argv: list[str] | None = None) -> int:
     native_parser.add_argument("-o", "--output", required=True, type=Path)
     native_parser.add_argument("--cc", default=None, help="Compiler executable (default: cc/gcc/clang)")
     args = parser.parse_args(argv)
+    if args.command == "run" and args.optimize and args.backend != "ir":
+        parser.error("--optimize requires --backend ir")
+    if args.command == "ir" and args.optimize and args.types:
+        parser.error("--optimize and --types cannot be combined in this prototype")
     try:
         program = None if args.command == "fmt" else load_program(args.file)
         if args.command == "check":
@@ -95,7 +103,11 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "disasm":
             sys.stdout.write(compile_ast(program).disassemble())
         elif args.command == "ir":
-            if args.types:
+            if args.optimize:
+                from .optimizer import optimize_ir
+                optimized, _stats = optimize_ir(compile_ir(program))
+                sys.stdout.write(optimized.disassemble())
+            elif args.types:
                 from .typed_ir import compile_typed_ir
                 sys.stdout.write(compile_typed_ir(program).disassemble())
             else:
@@ -122,8 +134,12 @@ def main(argv: list[str] | None = None) -> int:
             if args.backend == "vm":
                 VirtualMachine(sys.stdout, max_steps=args.max_steps).run(compile_ast(program))
             elif args.backend == "ir":
+                intermediate = compile_ir(program)
+                if args.optimize:
+                    from .optimizer import optimize_ir
+                    intermediate, _stats = optimize_ir(intermediate)
                 VirtualMachine(sys.stdout, max_steps=args.max_steps).run(
-                    lower_ir(compile_ir(program))
+                    lower_ir(intermediate)
                 )
             else:
                 Interpreter(sys.stdout, max_steps=args.max_steps).run(program)
