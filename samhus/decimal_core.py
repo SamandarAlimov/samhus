@@ -43,6 +43,8 @@ def make_decimal(value: object, token: Token) -> Decimal:
         _error(token, "decimal expects String, Int or Decimal (Float conversion is forbidden)")
     if not value or len(value) > MAX_INPUT_DIGITS + 16:
         _error(token, "Invalid Decimal input or length")
+    if value.lower().lstrip("+-") in {"nan", "snan", "infinity", "inf"}:
+        _error(token, "Decimal must be finite")
     if re.fullmatch(r"[+-]?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?", value) is None:
         _error(token, "Invalid Decimal literal")
     try:
