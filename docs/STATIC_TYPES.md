@@ -25,7 +25,8 @@ fn main() -> Unit {
 }
 ~~~
 
-Available annotations: Int, String, Bool, Unit, Any.
+Available primitive annotations: Int, Float, String, Bool, Null, Unit, Any.
+Experimental collection annotations: List[T], Map[String,T].
 Unknown annotations are parser errors, not silently treated as dynamic types.
 
 ## Analyzer checks
@@ -69,3 +70,11 @@ List[T] accepts recursive type arguments. Typed List literals are checked
 at their known element types, including nested ones and function arguments.
 Index results infer the element type, and append preserves typed List type
 where known. Dynamic Any remains an incomplete static safety boundary.
+
+## Experimental Float and Null checking (0.0.9)
+
+Float is a finite binary64 type. Known mixed Int/Float numeric arithmetic
+produces Float; known pure Int arithmetic remains Int; comparisons return
+Bool. Null is an explicit type distinct from Unit. Direct Int-to-Float
+assignment needs to_float(Int), and is_null(Any) returns Bool. Dynamic Any
+can still obscure type errors until execution. Native C11 lacks both types.

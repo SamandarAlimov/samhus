@@ -20,9 +20,9 @@ The restricted native C11 compiler does not support these structures.
 - json_parse(String) -> Any converts JSON objects to Map and arrays to List.
 - json_encode(Any) -> String converts typed primitives, Lists and Maps.
 - JSON null maps to explicit Null, distinct from Unit (experimental 0.0.9).
-- Fractional JSON values are rejected: no Float type exists yet.
-- json_valid checks JSON syntax and may accept valid fractional JSON even
-  though json_parse cannot represent Float. These APIs differ intentionally.
+- Finite fractional JSON values map to Float (introduced in 0.0.9).
+- json_valid checks JSON syntax. It can accept a syntactically valid but
+  non-finite numeric exponent that json_parse rejects.
 - Object duplicate keys and NaN/Infinity constants are rejected.
 - Input/output size limit: 1,000,000 UTF-8 bytes.
 - JSON depth limit: 64; node budget: 100,000.
@@ -41,7 +41,7 @@ The restricted native C11 compiler does not support these structures.
 This is not AI inference, validation against user-provided schemas,
 a complete memory-safe runtime, or a security sandbox. Deeply nested
 untrusted Samhus expressions may still exhaust Python runtime resources.
-No modules, native Map compilation, streaming JSON, or Float type yet.
+No modules, native Map/Float compilation or streaming JSON yet.
 
 Unicode hardening: json_parse and json_encode reject unpaired UTF-16
 surrogates, reporting Samhus errors instead of host encoding exceptions.

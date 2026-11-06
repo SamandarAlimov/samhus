@@ -103,7 +103,7 @@ Never execute untrusted source code with this interpreter.
 
 - println(value: Any) -> Unit: print one value.
 - assert(condition: Bool) -> Unit: fail with a source-positioned error if false.
-- len(text: String) -> Int: return Unicode code-point count for a string.
+- len(text: String | List | Map) -> Int: return string code points or collection size.
 - str(value: Any) -> String: convert primitive/Unit value to text.
 - json_valid(payload: String) -> Bool: check strict JSON syntax,
   rejecting malformed JSON, NaN and Infinity.
@@ -125,5 +125,14 @@ remains unsupported. See [LISTS.md](LISTS.md).
 Map[String,T] includes immutable key-value literal syntax, String-key
 indexing, map_set/map_has/map_keys and len(Map). Nested types are allowed.
 json_parse(String) returns Any containing Map/List; json_encode creates
-JSON text. JSON null maps provisionally to Unit; Float is unsupported.
+JSON text. In 0.0.9 JSON null maps to distinct Null and finite fractional
+numbers map to Float.
 See [MAPS_JSON.md](MAPS_JSON.md). Native compilation is not yet supported.
+
+## Float and Null experiments (0.0.9)
+
+Finite binary64 Float literals support decimal and scientific notation.
+Float arithmetic mixes with Int but remains approximate; pure Int division
+keeps legacy truncation. Null is separate from Unit; is_null and to_float
+are available. JSON fractional numbers map to Float and null to Null.
+See FLOAT_NULL.md for numeric and native-backend limitations.
