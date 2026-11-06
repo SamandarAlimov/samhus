@@ -52,6 +52,7 @@ def main(argv: list[str] | None = None) -> int:
     fmt_flags.add_argument("--write", action="store_true", help="Rewrite the file in place")
     ir_parser = subcommands.add_parser("ir", help="Inspect validated basic-block IR, stack and scope states")
     ir_parser.add_argument("file", type=Path)
+    ir_parser.add_argument("--types", action="store_true", help="Show experimental stack value types (requires static checker)")
     disasm_parser = subcommands.add_parser("disasm", help="Inspect experimental compiled bytecode")
     disasm_parser.add_argument("file", type=Path)
     emit_parser = subcommands.add_parser("emit-c", help="Generate C11 source from experimental typed subset")
@@ -94,7 +95,11 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "disasm":
             sys.stdout.write(compile_ast(program).disassemble())
         elif args.command == "ir":
-            sys.stdout.write(compile_ir(program).disassemble())
+            if args.types:
+                from .typed_ir import compile_typed_ir
+                sys.stdout.write(compile_typed_ir(program).disassemble())
+            else:
+                sys.stdout.write(compile_ir(program).disassemble())
         elif args.command == "fmt":
             source = args.file.read_text(encoding="utf-8")
             formatted = format_program(source)
