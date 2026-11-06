@@ -308,9 +308,11 @@ static int64_t sh_div(int64_t a, int64_t b) {
 '''
 
 
-def emit_c(source: str) -> str:
-    """Translate a strictly typed, intentionally restricted Samhus subset."""
-    program = parse_program(source)
+def emit_program_c(program: Program) -> str:
+    """Lower a fully resolved typed Program to limited standalone C11."""
+    if program.imports:
+        entry = program.imports[0]
+        raise SamhusError("Unresolved imports in native program", entry.token.line, entry.token.column)
     # Existing semantic checker catches a variety of source errors early.
     TypeChecker(program).check()
     emitter = _Emitter(program)
@@ -329,3 +331,8 @@ def emit_c(source: str) -> str:
         lines.extend(emitter.function(fn))
     lines.extend(["int main(void) {", "    sh_fn_main();", "    return 0;", "}", ""])
     return "\n".join(lines)
+
+
+def emit_c(source: str) -> str:
+    """Backwards-compatible single-source native C11 generator."""
+    return emit_program_c(parse_program(source))

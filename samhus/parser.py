@@ -42,8 +42,15 @@ class Function:
 
 
 @dataclass(frozen=True)
+class ImportDecl:
+    path: str
+    token: Token
+
+
+@dataclass(frozen=True)
 class Program:
     functions: tuple[Function, ...]
+    imports: tuple[ImportDecl, ...] = ()
 
 
 TYPE_NAMES = frozenset({"Int", "Float", "Decimal", "String", "Bool", "Null", "Unit", "Any", "List", "Map", "Result"})
@@ -103,10 +110,18 @@ class Parser:
             return f"{token.text}[{inner}]"
         return token.text
 
-    def parse_program(self) -> Program:
+    def parse_program(self, *, allow_imports: bool = False,
+                      require_main: bool = True) -> Program:
         functions: list[Function] = []
+        imports: list[ImportDecl] = []
         names: set[str] = set()
         while self.current.kind != "EOF":
+            if self.current.kind == "import":
+                statement = self.expect("import")
+                path_token = self.expect("STRING")
+                imports.append(ImportDecl(path_token.text, statement))
+                self.accept(";")
+                continue
             self.expect("fn")
             name = self.expect("IDENT")
             if name.text in names:
@@ -131,12 +146,18 @@ class Parser:
             body = self.block()
             functions.append(Function(name.text, name, tuple(params), body, tuple(param_types), return_type))
         entry = next((fn for fn in functions if fn.name == "main"), None)
-        if entry is None:
+        if require_main and entry is None:
             token = self.current
             raise SamhusError("Missing entry point: only 'fn main()' is a valid entry point", token.line, token.column)
-        if entry.params:
+        if entry is not None and entry.params:
             raise SamhusError("Entry point 'main' must have zero parameters", entry.token.line, entry.token.column)
-        return Program(tuple(functions))
+        if imports and not allow_imports:
+            first = imports[0]
+            raise SamhusError(
+                "Imports require file-based loading (use samhus run/check FILE)",
+                first.token.line, first.token.column,
+            )
+        return Program(tuple(functions), tuple(imports))
 
     def parse(self) -> tuple[Stmt, ...]:
         """Legacy helper: validate the entire program and return main's statements."""

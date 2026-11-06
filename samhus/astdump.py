@@ -16,5 +16,9 @@ def _serialize(value):
     return value
 
 
+def dump_program(program) -> str:
+    return json.dumps(_serialize(program), indent=2, ensure_ascii=False, allow_nan=False)
+
+
 def dump_ast(source: str) -> str:
-    return json.dumps(_serialize(parse_program(source)), indent=2, ensure_ascii=False, allow_nan=False)
+    return dump_program(parse_program(source))

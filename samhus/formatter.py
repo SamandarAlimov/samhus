@@ -5,7 +5,7 @@ some optional parentheses are not preserved; use '--write' only deliberately.
 """
 import json
 
-from .parser import Expr, Program, Stmt, parse_program
+from .parser import Expr, Program, Stmt, Parser
 from .values import NULL
 
 
@@ -64,6 +64,10 @@ def _statements(statements: tuple[Stmt, ...], depth: int) -> list[str]:
 
 def format_ast(program: Program) -> str:
     lines: list[str] = []
+    for imported in program.imports:
+        lines.append("import " + json.dumps(imported.path, ensure_ascii=False))
+    if lines and program.functions:
+        lines.append("")
     for fn in program.functions:
         params = ", ".join(
             f"{name}: {annotation}" if annotation else name
@@ -80,7 +84,7 @@ def format_ast(program: Program) -> str:
 
 
 def format_program(source: str) -> str:
-    return format_ast(parse_program(source))
+    return format_ast(Parser(source).parse_program(allow_imports=True, require_main=False))
 
 
 def contains_comments(source: str) -> bool:
