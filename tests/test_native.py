@@ -1,12 +1,13 @@
 """Experimental native C backend tests, semantics, and unsupported-case safety."""
 import shutil
+import random
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from samhus import SamhusError
+from samhus import SamhusError, run_to_string
 from samhus.native_c import emit_c
 
 
@@ -221,6 +222,27 @@ fn main() -> Unit { println(sum(first(), second())) }"""
         r = self.build_run(main("println((-9223372036854775808)/(-1))"))
         self.assertEqual(r.returncode, 2)
         self.assertIn("integer overflow", r.stderr)
+
+    def test_native_100_deterministic_calculations(self):
+        rng = random.Random(68102)
+        operations = ("+", "-", "*", "/", "==", "!=", "<", "<=", ">", ">=")
+        statements = []
+        for _ in range(100):
+            a, b = rng.randint(-1000, 1000), rng.randint(-1000, 1000)
+            op = rng.choice(operations)
+            if op == "/" and b == 0:
+                b = 1
+            statements.append(f"println(({a}) {op} ({b}))")
+        source = main("; ".join(statements))
+        native_output = self.build_run(source)
+        self.assertEqual(native_output.returncode, 0, native_output.stderr)
+        self.assertEqual(native_output.stdout, run_to_string(source))
+
+    def test_native_program_has_no_python_runtime_dependency(self):
+        source = main('println("Standalone")')
+        program = self.build_run(source)
+        self.assertEqual(program.returncode, 0, program.stderr)
+        self.assertEqual(program.stdout, "Standalone\\n")
 
     def test_native_false_branch_lazy(self):
         r = self.build_run(main("println(false && (1/0==1)); println(true || (1/0==1))"))
