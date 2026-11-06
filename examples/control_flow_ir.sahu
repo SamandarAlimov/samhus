@@ -1,0 +1,18 @@
+// Control-flow IR exploration; no release version attached.
+fn triangular(n: Int) -> Int {
+    var sum: Int = 0
+    var i: Int = 1
+    while i <= n {
+        if i <= 3 {
+            sum = sum + i
+        } else {
+            sum = sum + i
+        }
+        i = i + 1
+    }
+    return sum
+}
+
+fn main() -> Unit {
+    println(triangular(10))
+}
