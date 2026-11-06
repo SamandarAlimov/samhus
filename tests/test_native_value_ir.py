@@ -107,9 +107,8 @@ class NativeValueIRTests(unittest.TestCase):
         code=program(";".join(statements))
         self.native(code,run_to_string(code))
 
-    def test_reject_variables_in_subset(self):
-        with self.assertRaisesRegex(SamhusError,"unsupported instruction"):
-            self.emit(program("let x:Int=2;println(x)"))
+    def test_local_variables_in_subset(self):
+        self.native(program("let x:Int=2;println(x+40)"),"42\n")
 
     def test_reject_float(self):
         with self.assertRaisesRegex(SamhusError,"unsupported value type"):
@@ -123,9 +122,9 @@ class NativeValueIRTests(unittest.TestCase):
         with self.assertRaises(SamhusError):
             self.emit(program('println("Hello")'))
 
-    def test_reject_while(self):
-        with self.assertRaisesRegex(SamhusError,"while loops"):
-            self.emit(program("while false {println(1)}"))
+    def test_while_in_subset(self):
+        self.native(program("var i:Int=0;while i<3 {println(i);i=i+1}"),
+                    "0\n1\n2\n")
 
     def test_reject_function_calls(self):
         with self.assertRaisesRegex(SamhusError,"only main"):
