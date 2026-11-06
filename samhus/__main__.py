@@ -6,6 +6,7 @@ import sys
 from . import __version__, parse, run, SamhusError
 from .typecheck import check_types
 from .astdump import dump_ast
+from .formatter import format_program
 
 
 def positive_int(text: str) -> int:
@@ -33,6 +34,11 @@ def main(argv: list[str] | None = None) -> int:
     type_parser.add_argument("file", type=Path)
     ast_parser = subcommands.add_parser("ast", help="Print a JSON syntax tree")
     ast_parser.add_argument("file", type=Path)
+    fmt_parser = subcommands.add_parser("fmt", help="Format experimental Samhus source")
+    fmt_parser.add_argument("file", type=Path)
+    fmt_flags = fmt_parser.add_mutually_exclusive_group()
+    fmt_flags.add_argument("--check", action="store_true", help="Fail if formatting differs")
+    fmt_flags.add_argument("--write", action="store_true", help="Rewrite the file in place")
     args = parser.parse_args(argv)
     try:
         source = args.file.read_text(encoding="utf-8")
@@ -44,6 +50,18 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Type check OK: {args.file}")
         elif args.command == "ast":
             print(dump_ast(source))
+        elif args.command == "fmt":
+            formatted = format_program(source)
+            if args.check:
+                if source != formatted:
+                    print(f"Needs formatting: {args.file}", file=sys.stderr)
+                    return 1
+                print(f"Formatting OK: {args.file}")
+            elif args.write:
+                args.file.write_text(formatted, encoding="utf-8")
+                print(f"Formatted: {args.file}")
+            else:
+                sys.stdout.write(formatted)
         else:
             if args.typecheck:
                 check_types(source)
