@@ -96,10 +96,13 @@ class TypeChecker:
             return "List[" + (first if all(item == first for item in types) else "Any") + "]"
         if expr.kind == "index":
             target = self.expr_type(expr.left)
+            if target == ANY:
+                # Dynamic JSON values may be Maps (String key) or Lists (Int
+                # index). Validate expression itself; runtime checks the key.
+                self.expr_type(expr.right)
+                return ANY
             key_type = "String" if map_value_type(target) is not None else "Int"
             self.require_expr(expr.right, key_type)
-            if target == ANY:
-                return ANY
             mapped = map_value_type(target)
             if mapped is not None:
                 return mapped
