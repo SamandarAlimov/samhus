@@ -186,10 +186,6 @@ def _function(fn, types) -> ValueFunction:
                         if next_stack:
                             output_type = next_stack[-1]
                 ops.append(ValueOp(position, instruction, arguments, produced, output_type))
-            if len(stack) != block.entry_stack + (
-                len(stack) - block.entry_stack
-            ):
-                raise AssertionError("unreachable")
             exits[label] = tuple(stack)
             operations[label] = tuple(ops)
             pending.remove(label)

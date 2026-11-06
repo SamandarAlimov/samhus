@@ -55,6 +55,8 @@ def main(argv: list[str] | None = None) -> int:
     ir_parser = subcommands.add_parser("ir", help="Inspect validated basic-block IR, stack and scope states")
     ir_parser.add_argument("file", type=Path)
     ir_parser.add_argument("--types", action="store_true", help="Show experimental stack value types (requires static checker)")
+    ir_parser.add_argument("--values", action="store_true",
+                           help="Show value definitions, uses and stack PHI edges (not full SSA)")
     ir_parser.add_argument("--optimize", action="store_true",
                            help="Show verified IR after pure literal folding")
     disasm_parser = subcommands.add_parser("disasm", help="Inspect experimental compiled bytecode")
@@ -70,6 +72,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--optimize requires --backend ir")
     if args.command == "ir" and args.optimize and args.types:
         parser.error("--optimize and --types cannot be combined in this prototype")
+    if args.command == "ir" and args.values and args.types:
+        parser.error("--values and --types cannot be combined in this prototype")
     try:
         program = None if args.command == "fmt" else load_program(args.file)
         if args.command == "check":
@@ -103,7 +107,15 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "disasm":
             sys.stdout.write(compile_ast(program).disassemble())
         elif args.command == "ir":
-            if args.optimize:
+            if args.values:
+                from .value_ir import analyze_value_ir
+                TypeChecker(program).check()
+                intermediate = compile_ir(program)
+                if args.optimize:
+                    from .optimizer import optimize_ir
+                    intermediate, _stats = optimize_ir(intermediate)
+                sys.stdout.write(analyze_value_ir(intermediate).disassemble())
+            elif args.optimize:
                 from .optimizer import optimize_ir
                 optimized, _stats = optimize_ir(compile_ir(program))
                 sys.stdout.write(optimized.disassemble())
