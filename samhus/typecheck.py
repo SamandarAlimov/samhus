@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from .errors import SamhusError
 from .parser import Expr, Function, Program, Stmt, parse_program
 from .stdlib import BUILTIN_SIGNATURES
+from .values import element_type
 
 Type = str
 ANY = "Any"
@@ -39,11 +40,25 @@ class TypeChecker:
 
     @staticmethod
     def compatible(actual: Type, expected: Type) -> bool:
-        return ANY in {actual, expected} or actual == expected
+        if ANY in {actual, expected} or actual == expected:
+            return True
+        a, e = element_type(actual), element_type(expected)
+        return a is not None and e is not None and TypeChecker.compatible(a, e)
 
     def require(self, actual: Type, expected: Type, node: Expr | Stmt) -> None:
         if not self.compatible(actual, expected):
             self.fail(node, f"Type mismatch: expected {expected}, got {actual}")
+
+    def require_expr(self, expr: Expr, expected: Type) -> Type:
+        actual = self.expr_type(expr)
+        self.require(actual, expected, expr)
+        # The general List[Any] inference must not hide mismatches when the
+        # destination's element type is concrete and literals are visible.
+        inner = element_type(expected)
+        if inner is not None and expr.kind == "list":
+            for item in expr.args:
+                self.require_expr(item, inner)
+        return actual
 
     def expr_type(self, expr: Expr) -> Type:
         if expr.kind == "literal":
@@ -56,16 +71,53 @@ class TypeChecker:
             self.fail(expr, "Unsupported literal type")
         if expr.kind == "name":
             return self.resolve(expr.value, expr).type_name
+        if expr.kind == "list":
+            types = [self.expr_type(item) for item in expr.args]
+            if not types:
+                return "List[Any]"
+            first = types[0]
+            return "List[" + (first if all(item == first for item in types) else "Any") + "]"
+        if expr.kind == "index":
+            target = self.expr_type(expr.left)
+            self.require_expr(expr.right, "Int")
+            if target == ANY:
+                return ANY
+            if target == "String":
+                return "String"
+            inner = element_type(target)
+            if inner is None:
+                self.fail(expr, f"Indexing requires List or String, got {target}")
+            return inner
         if expr.kind == "call":
+            if expr.value == "append":
+                if len(expr.args) != 2:
+                    self.fail(expr, f"append expects 2 arguments, got {len(expr.args)}")
+                target_type = self.expr_type(expr.args[0])
+                inner_type = element_type(target_type)
+                if target_type == ANY:
+                    self.expr_type(expr.args[1])
+                    return ANY
+                if inner_type is None:
+                    self.fail(expr, f"append expects List, got {target_type}")
+                self.require_expr(expr.args[1], inner_type)
+                return target_type
+            if expr.value == "len":
+                if len(expr.args) != 1:
+                    self.fail(expr, f"len expects 1 argument, got {len(expr.args)}")
+                candidate = self.expr_type(expr.args[0])
+                if candidate not in (ANY, "String") and element_type(candidate) is None:
+                    self.fail(expr, f"Type mismatch: expected String, got {candidate} (or List)")
+                return "Int"
             signature = BUILTIN_SIGNATURES.get(expr.value)
             if signature is not None:
                 params, return_type = signature
                 if len(expr.args) != len(params):
                     self.fail(expr, f"{expr.value} expects {len(params)} argument, got {len(expr.args)}")
                 for argument, expected in zip(expr.args, params):
-                    actual = self.expr_type(argument)
                     if expected != ANY:
-                        self.require(actual, expected, argument)
+                        self.require_expr(argument, expected)
+                    else:
+                        self.expr_type(argument)
                 return return_type
             function = self.functions.get(expr.value)
             if function is None:
@@ -73,9 +125,10 @@ class TypeChecker:
             if len(expr.args) != len(function.params):
                 self.fail(expr, f"Function {expr.value!r} expects {len(function.params)} arguments, got {len(expr.args)}")
             for argument, annotation in zip(expr.args, function.param_types):
-                actual = self.expr_type(argument)
                 if annotation:
-                    self.require(actual, annotation, argument)
+                    self.require_expr(argument, annotation)
+                else:
+                    self.expr_type(argument)
             return function.return_type or ANY
         if expr.kind == "unary":
             typ = self.expr_type(expr.right)
@@ -125,20 +178,21 @@ class TypeChecker:
                         self.fail(stmt, f"Variable {stmt.name!r} already declared")
                     value_type = self.expr_type(stmt.expr)
                     if stmt.declared_type:
-                        self.require(value_type, stmt.declared_type, stmt)
+                        self.require_expr(stmt.expr, stmt.declared_type)
                     current[stmt.name] = Symbol(stmt.declared_type or value_type, stmt.mutable)
                 elif stmt.kind == "assign":
                     symbol = self.resolve(stmt.name, stmt)
                     if not symbol.mutable:
                         self.fail(stmt, f"Cannot assign to immutable variable {stmt.name!r}")
-                    self.require(self.expr_type(stmt.expr), symbol.type_name, stmt)
+                    self.require_expr(stmt.expr, symbol.type_name)
                 elif stmt.kind == "expr":
                     self.expr_type(stmt.expr)
                 elif stmt.kind == "return":
-                    value_type = self.expr_type(stmt.expr)
                     annotation = self.current_function.return_type
                     if annotation:
-                        self.require(value_type, annotation, stmt)
+                        self.require_expr(stmt.expr, annotation)
+                    else:
+                        self.expr_type(stmt.expr)
                     definitely_returns = True
                 elif stmt.kind == "if":
                     self.require(self.expr_type(stmt.expr), "Bool", stmt.expr)

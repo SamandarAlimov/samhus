@@ -9,35 +9,25 @@ from typing import Any, Callable, TextIO
 
 from .errors import SamhusError
 from .lexer import Token
+from .values import MAX_LIST_ITEMS, show, type_name as value_type_name
 
 # One primitive signature per function. Keep signatures and execution in sync.
 BUILTIN_SIGNATURES: dict[str, tuple[tuple[str, ...], str]] = {
     "println": (("Any",), "Unit"),
     "assert": (("Bool",), "Unit"),
-    "len": (("String",), "Int"),
+    "len": (("Any",), "Int"),
+    "append": (("Any", "Any"), "Any"),
     "str": (("Any",), "String"),
     "json_valid": (("String",), "Bool"),
 }
 
 
 def type_name(value: Any) -> str:
-    if type(value) is bool:
-        return "Bool"
-    if type(value) is int:
-        return "Int"
-    if type(value) is str:
-        return "String"
-    if value is None:
-        return "Unit"
-    raise TypeError("Unsupported Samhus runtime type")
+    return value_type_name(value)
 
 
 def display(value: Any) -> str:
-    if type(value) is bool:
-        return "true" if value else "false"
-    if value is None:
-        return "unit"
-    return str(value)
+    return show(value)
 
 
 def _reject_nonfinite(value: str) -> None:
@@ -63,6 +53,22 @@ def call_builtin(name: str, args: tuple[Any, ...], token: Token, output: TextIO)
             )
 
     value = args[0]
+    if name == "append":
+        if type(value) is not tuple:
+            raise SamhusError(
+                f"append expects List, got {type_name(value)}", token.line, token.column,
+            )
+        if len(value) >= MAX_LIST_ITEMS:
+            raise SamhusError(
+                f"List size limit exceeded ({MAX_LIST_ITEMS})", token.line, token.column
+            )
+        return value + (args[1],)
+    if name == "len":
+        if type(value) not in (tuple, str):
+            raise SamhusError(
+                f"Type mismatch: expected String, got {type_name(value)} (or List)",
+                token.line, token.column,
+            )
     if name == "println":
         print(display(value) if value is not None else "None", file=output)
         return None
