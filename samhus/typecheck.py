@@ -117,6 +117,13 @@ class TypeChecker:
                 self.fail(expr, f"Indexing requires List or String, got {target}")
             return inner
         if expr.kind == "call":
+            if expr.value == "to_float":
+                if len(expr.args) != 1:
+                    self.fail(expr, f"to_float expects 1 argument, got {len(expr.args)}")
+                kind = self.expr_type(expr.args[0])
+                if kind not in {"Int", "Float", ANY}:
+                    self.fail(expr.args[0], f"to_float expects Int or Float, got {kind}")
+                return "Float"
             if expr.value in {"map_set", "map_has", "map_keys"}:
                 count = {"map_set": 3, "map_has": 2, "map_keys": 1}[expr.value]
                 if len(expr.args) != count:
