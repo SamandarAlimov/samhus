@@ -6,6 +6,8 @@ very large Int or nonfinite results fails with SamhusError instead of leaking
 host exceptions. This is NOT a financial decimal arithmetic implementation.
 """
 import math
+from decimal import Decimal
+from .decimal_core import operation as decimal_operation, decimal_negate
 
 from .errors import SamhusError
 from .lexer import Token
@@ -36,6 +38,8 @@ def arithmetic(op: str, left: object, right: object, token: Token):
         raise AssertionError("Equality is handled by structural equality")
     if op == "+" and type(left) is str and type(right) is str:
         return left + right
+    if type(left) is Decimal or type(right) is Decimal:
+        return decimal_operation(op, left, right, token)
     if not (numeric(left) and numeric(right)):
         raise SamhusError(
             f"'{op}' requires integers or floats (or two strings for '+')",
@@ -84,6 +88,8 @@ def arithmetic(op: str, left: object, right: object, token: Token):
 
 
 def negate(value: object, token: Token):
+    if type(value) is Decimal:
+        return decimal_negate(value, token)
     if not numeric(value):
         raise SamhusError("Unary '-' requires an integer or float", token.line, token.column)
     if type(value) is float:

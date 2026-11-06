@@ -10,9 +10,10 @@ from .parser import Expr, Function, Program, Stmt, parse_program
 from .stdlib import BUILTIN_SIGNATURES, call_builtin
 from .values import accepts, build_list, index_of, map_value, structural_equal, type_name, MapValue, NullValue
 from .numbers import arithmetic, negate
+from decimal import Decimal
 
 
-Value = int | float | str | bool | None | NullValue | tuple | MapValue
+Value = int | float | Decimal | str | bool | None | NullValue | tuple | MapValue
 
 
 @dataclass

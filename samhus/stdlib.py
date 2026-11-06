@@ -11,6 +11,7 @@ from .errors import SamhusError
 from .lexer import Token
 from .values import MAX_LIST_ITEMS, MAX_MAP_ITEMS, MapValue, NullValue, map_value, show, type_name as value_type_name
 from .numbers import as_float, numeric
+from .decimal_core import make_decimal
 from .json_bridge import decode_json, encode_json
 
 # One primitive signature per function. Keep signatures and execution in sync.
@@ -23,6 +24,7 @@ BUILTIN_SIGNATURES: dict[str, tuple[tuple[str, ...], str]] = {
     "json_valid": (("String",), "Bool"),
     "is_null": (("Any",), "Bool"),
     "to_float": (("Any",), "Float"),
+    "decimal": (("Any",), "Decimal"),
     "json_parse": (("String",), "Any"),
     "json_encode": (("Any",), "String"),
     "map_set": (("Any", "String", "Any"), "Any"),
@@ -65,6 +67,8 @@ def call_builtin(name: str, args: tuple[Any, ...], token: Token, output: TextIO)
     value = args[0]
     if name == "is_null":
         return type(value) is NullValue
+    if name == "decimal":
+        return make_decimal(value, token)
     if name == "to_float":
         if not numeric(value):
             raise SamhusError(f"to_float expects Int or Float, got {type_name(value)}", token.line, token.column)

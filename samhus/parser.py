@@ -46,7 +46,7 @@ class Program:
     functions: tuple[Function, ...]
 
 
-TYPE_NAMES = frozenset({"Int", "Float", "String", "Bool", "Null", "Unit", "Any", "List", "Map"})
+TYPE_NAMES = frozenset({"Int", "Float", "Decimal", "String", "Bool", "Null", "Unit", "Any", "List", "Map"})
 
 
 PRECEDENCE = {

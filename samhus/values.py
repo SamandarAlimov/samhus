@@ -5,6 +5,7 @@ The type notation and representation have not been approved as permanent.
 """
 import json
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import Any
 
 from .errors import SamhusError
@@ -63,6 +64,8 @@ def type_name(value: Any) -> str:
         return "Int"
     if type(value) is float:
         return "Float"
+    if type(value) is Decimal:
+        return "Decimal"
     if type(value) is NullValue:
         return "Null"
     if type(value) is str:
@@ -125,6 +128,8 @@ def show(value: Any) -> str:
         return "unit"
     if type(value) is NullValue:
         return "null"
+    if type(value) is Decimal:
+        return str(value)
     if type(value) is tuple:
         return "[" + ", ".join(json.dumps(x, ensure_ascii=False) if type(x) is str else show(x) for x in value) + "]"
     if type(value) is MapValue:

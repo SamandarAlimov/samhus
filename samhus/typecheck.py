@@ -5,6 +5,7 @@ known literal expressions are checked; Any permits dynamic checks at runtime.
 This is an experimental analyzer, not a soundness proof.
 """
 from dataclasses import dataclass
+from decimal import Decimal
 
 from .errors import SamhusError
 from .parser import Expr, Function, Program, Stmt, parse_program
@@ -76,6 +77,8 @@ class TypeChecker:
                 return "Int"
             if type(expr.value) is float:
                 return "Float"
+            if type(expr.value) is Decimal:
+                return "Decimal"
             if expr.value is NULL:
                 return "Null"
             if type(expr.value) is str:
@@ -117,6 +120,13 @@ class TypeChecker:
                 self.fail(expr, f"Indexing requires List or String, got {target}")
             return inner
         if expr.kind == "call":
+            if expr.value == "decimal":
+                if len(expr.args) != 1:
+                    self.fail(expr, f"decimal expects 1 argument, got {len(expr.args)}")
+                kind = self.expr_type(expr.args[0])
+                if kind not in {"String", "Int", "Decimal", ANY}:
+                    self.fail(expr.args[0], f"decimal expects String, Int or Decimal, got {kind}")
+                return "Decimal"
             if expr.value == "to_float":
                 if len(expr.args) != 1:
                     self.fail(expr, f"to_float expects 1 argument, got {len(expr.args)}")
@@ -184,7 +194,7 @@ class TypeChecker:
             if expr.value == "!":
                 self.require(typ, "Bool", expr)
                 return "Bool"
-            if typ not in {"Int", "Float", ANY}:
+            if typ not in {"Int", "Float", "Decimal", ANY}:
                 self.require(typ, "Int", expr)
             return typ
         if expr.kind == "binary":
@@ -202,7 +212,7 @@ class TypeChecker:
                 ordering = op in {"<", "<=", ">", ">="}
                 if op == "+" and left == "String" and right == "String":
                     return "String"
-                allowed = {"Int", "Float", ANY}
+                allowed = {"Int", "Float", "Decimal", ANY}
                 if op == "+":
                     allowed.add("String")
                 if left not in allowed:
@@ -219,9 +229,15 @@ class TypeChecker:
                     else:
                         self.require(right, "Int", expr.right)
                 if ordering:
+                    if "Decimal" in (left, right) and "Float" in (left, right):
+                        self.fail(expr, "Decimal cannot mix with Float")
                     return "Bool"
                 if left == ANY or right == ANY:
                     return ANY
+                if "Decimal" in (left, right):
+                    if "Float" in (left, right):
+                        self.fail(expr, "Decimal cannot mix with Float")
+                    return "Decimal"
                 if "Float" in (left, right):
                     return "Float"
                 return "Int"
