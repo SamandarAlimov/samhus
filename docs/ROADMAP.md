@@ -60,3 +60,11 @@ investment/release schedule. No date or budget is committed here.
 - [x] Differential regression and generated indexing tests.
 - [ ] Full native collections with identical runtime semantics.
 - [ ] Maps, records, structured JSON, tensor libraries and concurrency.
+
+## Structured data milestone (experimental 0.0.8)
+
+- [x] Immutable Map[String,T], nested typechecking and functional updates.
+- [x] Bounded JSON parse/encode and explicit unsupported Float diagnostics.
+- [x] Tree/VM differential tests and generated Map lookup cases.
+- [ ] Proper Float/Null, schema validation, streaming JSON and Records/Struct.
+- [ ] Native backend collection semantics and independent security review.

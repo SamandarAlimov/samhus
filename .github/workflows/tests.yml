@@ -41,6 +41,12 @@ jobs:
         run: python -m samhus run examples/lists.sahu --backend tree --typecheck
       - name: Run List sample with VM backend
         run: python -m samhus run examples/lists.sahu --backend vm --typecheck
+      - name: Typecheck Maps and JSON example
+        run: python -m samhus typecheck examples/maps_json.sahu
+      - name: Execute Maps and JSON on tree backend
+        run: python -m samhus run examples/maps_json.sahu --backend tree --typecheck
+      - name: Execute Maps and JSON on VM backend
+        run: python -m samhus run examples/maps_json.sahu --backend vm --typecheck
       - name: Disassemble compiled program
         run: python -m samhus disasm examples/typed.sahu
       - name: Check AST serializer

@@ -2,6 +2,12 @@
 
 Prototype iterations, not stable releases.
 
+## 0.0.8 — 2026-11-06 (experimental)
+
+- Immutable Map[String,T], map_set, map_has, map_keys, len and indexed access.
+- Strict JSON parse/encode bridge, explicit unsupported Float errors.
+- Static typechecker, parser, VM, verifier, formatter and regression updates.
+
 ## 0.0.7 — 2026-11-06 (experimental)
 
 - Immutable List literals, nested List[T], index and bounds checks.

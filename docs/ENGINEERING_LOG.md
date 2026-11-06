@@ -97,3 +97,13 @@ This is not a production compiler, finalized semantics or security sandbox.
 - Added 54 new List tests and a 100-case generated indexing corpus.
 - First test gate: 305/305 passed on 6 cross-platform CI jobs.
 - Native C11 remains incompatible and rejects unsupported List.
+
+## 2026-11-06 — experimental Map and JSON (0.0.8)
+
+- Added Map literals, checked key indexing and persistent map updates.
+- Added BUILD_MAP bytecode with verifier stack accounting.
+- Extended runtime, type checker and formatter to recursive Map/List values.
+- Implemented strict size/depth-limited JSON conversion for AI data workflows.
+- Added regression suite including 100 generated Map lookup scenarios.
+- Experimental native C11 deliberately rejects Map and JSON APIs.
+- No inference, schemas, Float or native Map support claimed.

@@ -119,3 +119,11 @@ Collection literal [1, 2], nested List[T] annotations, index[i],
 len(List), functional append(List,value), and deep equality are available
 in tree/VM. Negative or invalid indexes raise diagnostics. Native C11
 remains unsupported. See [LISTS.md](LISTS.md).
+
+## Experimental Map and JSON (0.0.8)
+
+Map[String,T] includes immutable key-value literal syntax, String-key
+indexing, map_set/map_has/map_keys and len(Map). Nested types are allowed.
+json_parse(String) returns Any containing Map/List; json_encode creates
+JSON text. JSON null maps provisionally to Unit; Float is unsupported.
+See [MAPS_JSON.md](MAPS_JSON.md). Native compilation is not yet supported.

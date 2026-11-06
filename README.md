@@ -1,7 +1,7 @@
 # Samhus — Alsamos programming-language research project
 
 **Samhus** is Alsamos's founder-approved programming-language name.
-The current software is **prototype 0.0.7**, not a production-ready language
+The current software is **prototype 0.0.8**, not a production-ready language
 or an implementation comparable in completeness to C++ or Python 3.13.
 
 A restricted third path can now produce standalone native C11 executables via a system C compiler. The compiler itself still needs Python and this does not support the full Samhus grammar.
@@ -209,3 +209,20 @@ samhus run examples/lists.sahu --backend vm --typecheck
 The C11 native subset does NOT support List; that path rejects it.
 Read [List design and caveats](docs/LISTS.md). No production
 generics, tensor API, GPU acceleration or memory-safety claim is made.
+
+## Immutable Map and JSON bridge (0.0.8, experimental)
+
+Samhus now supports Map[String,T] literals, String-key indexing,
+map_set, map_has, map_keys and len(Map) in both tree and VM backends.
+JSON text can be converted to/from nested immutable Map/List values using
+json_parse and json_encode. Unsupported fractional JSON numbers fail
+explicitly rather than silently losing precision. Duplicated keys,
+invalid input and resource limits generate source-positioned errors.
+Native C11 does not support Maps or JSON; this is not production AI tooling.
+
+    samhus typecheck examples/maps_json.sahu
+    samhus run examples/maps_json.sahu --backend tree --typecheck
+    samhus run examples/maps_json.sahu --backend vm --typecheck
+
+See [Map and JSON limitations](docs/MAPS_JSON.md). This syntax and the
+.sahu suffix remain provisional.
