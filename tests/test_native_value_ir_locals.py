@@ -138,11 +138,15 @@ class NativeLocalTests(unittest.TestCase):
     def test_randomized_arithmetic_in_loop(self):
         rng=random.Random(20261107)
         loops=[]
-        for _ in range(15):
+        for item in range(15):
             limit=rng.randint(0,20)
-            loops.append(f"var i:Int=0;var sum:Int=0;"
-                         f"while i<{limit} {{sum=sum+i;i=i+1}};"
-                         "println(sum)")
+            i=f"index{item}"
+            total=f"total{item}"
+            loops.append(
+                f"var {i}:Int=0;var {total}:Int=0;"
+                f"while {i}<{limit} {{{total}={total}+{i};{i}={i}+1}};"
+                f"println({total})"
+            )
         source=main(";".join(loops))
         self.native(source,run_to_string(source))
 
