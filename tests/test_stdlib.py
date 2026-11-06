@@ -122,10 +122,10 @@ class StandardLibraryParityTests(unittest.TestCase):
     def test_json_arity(self):
         self.assert_runtime_error(wrap("json_valid()"), "json_valid expects 1 argument, got 0")
 
-    def test_json_nonfinite_default_limitation(self):
-        # Python's default json parser accepts NaN, Infinity: Samhus
-        # documentation must not mistake this for strict RFC JSON.
-        self.assert_both(wrap('println(json_valid("NaN"))'), "true\n")
+    def test_json_nonfinite_strict(self):
+        for item in ("NaN", "Infinity", "-Infinity"):
+            with self.subTest(item=item):
+                self.assert_both(wrap(f'println(json_valid("{item}"))'), "false\n")
 
     def test_nested_calls(self):
         self.assert_both(

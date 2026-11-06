@@ -40,6 +40,10 @@ def display(value: Any) -> str:
     return str(value)
 
 
+def _reject_nonfinite(value: str) -> None:
+    raise ValueError(f"Non-JSON numeric constant {value!r}")
+
+
 def call_builtin(name: str, args: tuple[Any, ...], token: Token, output: TextIO) -> Any:
     """Execute a declared builtin or fail with a source-positioned diagnostic."""
     signature = BUILTIN_SIGNATURES.get(name)
@@ -74,7 +78,8 @@ def call_builtin(name: str, args: tuple[Any, ...], token: Token, output: TextIO)
         # AI outputs often contain user-controlled JSON text. Validation must
         # report false rather than propagate JSONDecodeError into the host.
         try:
-            json.loads(value)
+            # Reject Python json's non-standard NaN / Infinity extensions.
+            json.loads(value, parse_constant=_reject_nonfinite)
             return True
         except (ValueError, RecursionError):
             return False
