@@ -3,13 +3,15 @@ import argparse
 from pathlib import Path
 import sys
 
-from . import __version__, parse, run, SamhusError
-from .typecheck import check_types
-from .astdump import dump_ast
+from . import __version__, SamhusError
+from .typecheck import TypeChecker
+from .astdump import dump_program
 from .formatter import format_program, contains_comments
-from .bytecode import compile_source
-from .vm import run_vm
-from .native_c import emit_c
+from .bytecode import compile_ast
+from .vm import VirtualMachine
+from .runtime import Interpreter
+from .native_c import emit_program_c
+from .modules import load_program
 import shutil
 import subprocess
 import tempfile
@@ -57,19 +59,18 @@ def main(argv: list[str] | None = None) -> int:
     native_parser.add_argument("--cc", default=None, help="Compiler executable (default: cc/gcc/clang)")
     args = parser.parse_args(argv)
     try:
-        source = args.file.read_text(encoding="utf-8")
+        program = None if args.command == "fmt" else load_program(args.file)
         if args.command == "check":
-            parse(source)
             print(f"Syntax OK: {args.file}")
         elif args.command == "typecheck":
-            check_types(source)
+            TypeChecker(program).check()
             print(f"Type check OK: {args.file}")
         elif args.command == "ast":
-            print(dump_ast(source))
+            print(dump_program(program))
         elif args.command == "emit-c":
-            sys.stdout.write(emit_c(source))
+            sys.stdout.write(emit_program_c(program))
         elif args.command == "native":
-            compiled = emit_c(source)
+            compiled = emit_program_c(program)
             compiler = args.cc or next((name for name in ("cc", "gcc", "clang") if shutil.which(name)), None)
             if compiler is None or shutil.which(compiler) is None:
                 print("samhus: no C compiler found (cc/gcc/clang required)", file=sys.stderr)
@@ -88,8 +89,9 @@ def main(argv: list[str] | None = None) -> int:
                     return 1
                 print(f"Native executable: {output}")
         elif args.command == "disasm":
-            sys.stdout.write(compile_source(source).disassemble())
+            sys.stdout.write(compile_ast(program).disassemble())
         elif args.command == "fmt":
+            source = args.file.read_text(encoding="utf-8")
             formatted = format_program(source)
             if args.check:
                 if source != formatted:
@@ -106,11 +108,11 @@ def main(argv: list[str] | None = None) -> int:
                 sys.stdout.write(formatted)
         else:
             if args.typecheck:
-                check_types(source)
+                TypeChecker(program).check()
             if args.backend == "vm":
-                run_vm(source, max_steps=args.max_steps)
+                VirtualMachine(sys.stdout, max_steps=args.max_steps).run(compile_ast(program))
             else:
-                run(source, max_steps=args.max_steps)
+                Interpreter(sys.stdout, max_steps=args.max_steps).run(program)
         return 0
     except (OSError, UnicodeError) as exc:
         print(f"samhus: {exc}", file=sys.stderr)
