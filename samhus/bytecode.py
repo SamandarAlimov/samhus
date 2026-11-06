@@ -77,6 +77,14 @@ class _Emitter:
                 self.expression(expr.left)
                 self.expression(expr.right)
                 self.emit("BINARY", expr.value, expr.token)
+        elif kind == "list":
+            for argument in expr.args:
+                self.expression(argument)
+            self.emit("BUILD_LIST", len(expr.args), expr.token)
+        elif kind == "index":
+            self.expression(expr.left)
+            self.expression(expr.right)
+            self.emit("INDEX", None, expr.token)
         elif kind == "call":
             for argument in expr.args:
                 self.expression(argument)

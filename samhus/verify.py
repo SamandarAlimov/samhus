@@ -39,6 +39,12 @@ def verify_function(function: Code) -> None:
             popped, pushed = 1, 1
         elif op == "BINARY":
             popped, pushed = 2, 1
+        elif op == "INDEX":
+            popped, pushed = 2, 1
+        elif op == "BUILD_LIST":
+            if type(arg) is not int or arg < 0:
+                raise BytecodeValidationError(f"{function.name}: malformed BUILD_LIST at {ip}")
+            popped, pushed = arg, 1
         elif op == "CALL":
             if not isinstance(arg, tuple) or len(arg) != 2 or type(arg[1]) is not int or arg[1] < 0:
                 raise BytecodeValidationError(f"{function.name}: malformed CALL at {ip}")

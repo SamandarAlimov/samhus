@@ -44,7 +44,7 @@ class Program:
     functions: tuple[Function, ...]
 
 
-TYPE_NAMES = frozenset({"Int", "String", "Bool", "Unit", "Any"})
+TYPE_NAMES = frozenset({"Int", "String", "Bool", "Unit", "Any", "List"})
 
 
 PRECEDENCE = {
@@ -77,10 +77,17 @@ class Parser:
             raise SamhusError(f"Expected {kind!r}, found {token.kind!r}", token.line, token.column)
         return result
 
-    def parse_type(self) -> str:
+    def parse_type(self, depth: int = 0) -> str:
         token = self.expect("IDENT")
         if token.text not in TYPE_NAMES:
             raise SamhusError(f"Unknown type {token.text!r}", token.line, token.column)
+        if token.text == "List":
+            if depth >= 24:
+                raise SamhusError("Type nesting exceeds maximum depth 24", token.line, token.column)
+            self.expect("[")
+            inner = self.parse_type(depth + 1)
+            self.expect("]")
+            return f"List[{inner}]"
         return token.text
 
     def parse_program(self) -> Program:
@@ -188,8 +195,23 @@ class Parser:
         elif self.accept("("):
             left = self.expression()
             self.expect(")")
+        elif self.accept("["):
+            elements: list[Expr] = []
+            if self.current.kind != "]":
+                while True:
+                    elements.append(self.expression())
+                    if not self.accept(","):
+                        break
+            self.expect("]")
+            left = Expr("list", token, args=tuple(elements))
         else:
             raise SamhusError("Expected expression", token.line, token.column)
+
+        while self.current.kind == "[":
+            bracket = self.expect("[")
+            index = self.expression()
+            self.expect("]")
+            left = Expr("index", bracket, left=left, right=index)
 
         while self.current.kind in PRECEDENCE and PRECEDENCE[self.current.kind] >= min_precedence:
             operator = self.current

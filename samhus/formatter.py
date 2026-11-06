@@ -19,6 +19,10 @@ def _expr(node: Expr) -> str:
         return node.value
     if node.kind == "call":
         return f"{node.value}({', '.join(_expr(arg) for arg in node.args)})"
+    if node.kind == "list":
+        return "[" + ", ".join(_expr(item) for item in node.args) + "]"
+    if node.kind == "index":
+        return f"{_expr(node.left)}[{_expr(node.right)}]"
     if node.kind == "unary":
         return f"({node.value}{_expr(node.right)})"
     if node.kind == "binary":

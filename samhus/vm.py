@@ -13,6 +13,7 @@ from .errors import SamhusError
 from .lexer import Token
 from .runtime import Binding, Value, value_type
 from .stdlib import BUILTIN_SIGNATURES, call_builtin
+from .values import accepts, build_list, index_of, structural_equal
 
 
 @dataclass
@@ -42,7 +43,7 @@ class VirtualMachine:
             self.error(token, f"Execution step limit exceeded ({self.max_steps})")
 
     def enforce(self, expected: str | None, value: Value, token: Token) -> None:
-        if expected is not None and expected != "Any" and expected != value_type(value):
+        if not accepts(expected, value):
             self.error(token, f"Type mismatch: expected {expected}, got {value_type(value)}")
 
     def binding(self, frame: _Frame, name: str, token: Token) -> Binding:
@@ -63,7 +64,7 @@ class VirtualMachine:
 
     def binary(self, op: str, left: Value, right: Value, token: Token) -> Value:
         if op in {"==", "!="}:
-            eq = type(left) is type(right) and left == right
+            eq = structural_equal(left, right)
             return eq if op == "==" else not eq
         if op == "+" and type(left) is str and type(right) is str:
             return left + right
@@ -158,6 +159,15 @@ class VirtualMachine:
             elif op == "BINARY":
                 right, left = stack.pop(), stack.pop()
                 stack.append(self.binary(arg, left, right, token))
+            elif op == "BUILD_LIST":
+                count = arg
+                items = tuple(stack[-count:]) if count else ()
+                if count:
+                    del stack[-count:]
+                stack.append(build_list(items, token))
+            elif op == "INDEX":
+                index, sequence = stack.pop(), stack.pop()
+                stack.append(index_of(sequence, index, token))
             elif op == "CALL":
                 name, count = arg
                 arguments = tuple(stack[-count:]) if count else ()

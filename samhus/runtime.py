@@ -8,9 +8,10 @@ from .errors import SamhusError
 from .lexer import Token
 from .parser import Expr, Function, Program, Stmt, parse_program
 from .stdlib import BUILTIN_SIGNATURES, call_builtin
+from .values import accepts, build_list, index_of, structural_equal, type_name
 
 
-Value = int | str | bool | None
+Value = int | str | bool | None | tuple
 
 
 @dataclass
@@ -21,13 +22,7 @@ class Binding:
 
 
 def value_type(value: Value) -> str:
-    if type(value) is bool:
-        return "Bool"
-    if type(value) is int:
-        return "Int"
-    if type(value) is str:
-        return "String"
-    return "Unit"
+    return type_name(value)
 
 
 class _ReturnSignal(Exception):
@@ -57,7 +52,7 @@ class Interpreter:
             self.error(node, f"Execution step limit exceeded ({self.max_steps})")
 
     def enforce_type(self, declared: str | None, value: Value, node: Expr | Stmt | Token) -> None:
-        if declared is not None and declared != "Any" and declared != value_type(value):
+        if not accepts(declared, value):
             self.error(node, f"Type mismatch: expected {declared}, got {value_type(value)}")
 
     def lookup(self, name: str, node: Expr | Stmt) -> Binding:
@@ -103,6 +98,12 @@ class Interpreter:
             return expr.value
         if expr.kind == "name":
             return self.lookup(expr.value, expr).value
+        if expr.kind == "list":
+            return build_list(tuple(self.evaluate(item) for item in expr.args), expr.token)
+        if expr.kind == "index":
+            sequence = self.evaluate(expr.left)
+            index = self.evaluate(expr.right)
+            return index_of(sequence, index, expr.token)
         if expr.kind == "call":
             args = tuple(self.evaluate(argument) for argument in expr.args)
             return self.invoke(expr.value, args, expr.token)
@@ -131,7 +132,7 @@ class Interpreter:
                 return right
             right = self.evaluate(expr.right)
             if operator in {"==", "!="}:
-                equals = type(left) is type(right) and left == right
+                equals = structural_equal(left, right)
                 return equals if operator == "==" else not equals
             if operator == "+" and type(left) is str and type(right) is str:
                 return left + right
