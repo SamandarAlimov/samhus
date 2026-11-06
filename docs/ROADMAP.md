@@ -76,3 +76,11 @@ investment/release schedule. No date or budget is committed here.
 - [x] Formatter, AST and cross-backend regression coverage.
 - [ ] Decimal for money, Option/Result types, structured errors.
 - [ ] Full native numerical type equivalence and security review.
+
+## Exact numbers and managed failures (0.0.10 experimental)
+
+- [x] Bounded exact Decimal from String/Int; no implicit binary Float import.
+- [x] Explicit rounding and division policies with scale/mode tests.
+- [x] Typed Result[T], safe JSON error capture, regression coverage.
+- [ ] Native Decimal and Result parity, Option, full error propagation.
+- [ ] Independently reviewed accounting algorithms and memory model.

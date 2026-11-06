@@ -55,6 +55,12 @@ jobs:
         run: python -m samhus run examples/float_null.sahu --backend vm --typecheck
       - name: Export Float Null AST
         run: python -m samhus ast examples/float_null.sahu
+      - name: Typecheck Decimal and Result example
+        run: python -m samhus typecheck examples/decimal_result.sahu
+      - name: Run Decimal and Result on tree
+        run: python -m samhus run examples/decimal_result.sahu --backend tree --typecheck
+      - name: Run Decimal and Result on VM
+        run: python -m samhus run examples/decimal_result.sahu --backend vm --typecheck
       - name: Disassemble compiled program
         run: python -m samhus disasm examples/typed.sahu
       - name: Check AST serializer

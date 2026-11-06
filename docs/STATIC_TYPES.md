@@ -78,3 +78,11 @@ produces Float; known pure Int arithmetic remains Int; comparisons return
 Bool. Null is an explicit type distinct from Unit. Direct Int-to-Float
 assignment needs to_float(Int), and is_null(Any) returns Bool. Dynamic Any
 can still obscure type errors until execution. Native C11 lacks both types.
+
+## Decimal and Result[T] experimental checking (0.0.10)
+
+The checker recognizes Decimal and recursive Result[T] annotations.
+Known Decimal/Float mixing and Float-to-Decimal conversions are rejected.
+Result[T] success payloads are checked at known typed boundaries.
+Result[T] error values contain String diagnostics. Dynamic Any values
+remain runtime boundaries; this is not an audited or sound type checker.

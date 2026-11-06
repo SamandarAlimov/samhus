@@ -136,3 +136,12 @@ Float arithmetic mixes with Int but remains approximate; pure Int division
 keeps legacy truncation. Null is separate from Unit; is_null and to_float
 are available. JSON fractional numbers map to Float and null to Null.
 See FLOAT_NULL.md for numeric and native-backend limitations.
+
+## Decimal and Result[T] experimental core (0.0.10)
+
+Decimal values are constructed from Strings or Int through decimal(...),
+not from Float. Exact operators and explicit decimal_round / decimal_div
+are available; nonterminating division requires deliberate rounding.
+Result[T] represents Ok or Err. Helpers: result_ok, result_err,
+result_is_ok, result_value, result_error, result_or and try_json_parse.
+See [DECIMAL_RESULT.md](DECIMAL_RESULT.md) for limits and warnings.

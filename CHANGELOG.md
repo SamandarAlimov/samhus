@@ -2,6 +2,13 @@
 
 Prototype iterations, not stable releases.
 
+## 0.0.10 — 2026-11-06 (experimental)
+
+- Bounded exact Decimal and explicit rounding/division helpers.
+- Result[T] typed Ok/Err helpers and JSON parse failure capture.
+- Tree/VM tests, generated cases and cross-platform smoke commands.
+- Native Decimal/Result and production safety are not implemented.
+
 ## 0.0.9 — 2026-11-06 (experimental)
 
 - Finite Float, exponent literals, mixed Int/Float arithmetic and to_float.

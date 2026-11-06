@@ -118,3 +118,12 @@ This is not a production compiler, finalized semantics or security sandbox.
 - Added 200 generated numeric/JSON cases; initial CI 432/432 succeeded
   on 6 jobs across Windows, macOS and Linux on Python 3.11/3.13.
 - Native C11 remains experimental and does not accept Float/Null.
+
+## 2026-11-06 — Decimal and Result prototype (0.0.10)
+
+- Added exact base-10 Decimal runtime, bounded inputs/results and no silent rounding.
+- Added explicit decimal_round and decimal_div modes with validation.
+- Added Result[T] Ok/Err runtime values and try_json_parse for safe JSON errors.
+- Added 75 regression methods on Decimal/Result and generated scenarios;
+  first full CI gate 507 tests after explicit numeric rounding changes.
+- Native C11 remains incompatible; no complete memory-safety or financial audit.

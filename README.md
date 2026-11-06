@@ -1,7 +1,7 @@
 # Samhus — Alsamos programming-language research project
 
 **Samhus** is Alsamos's founder-approved programming-language name.
-The current software is **prototype 0.0.9**, not a production-ready language
+The current software is **prototype 0.0.10**, not a production-ready language
 or an implementation comparable in completeness to C++ or Python 3.13.
 
 A restricted third path can now produce standalone native C11 executables via a system C compiler. The compiler itself still needs Python and this does not support the full Samhus grammar.
@@ -239,3 +239,17 @@ Native C11 remains limited and rejects these new types.
     python -m samhus run examples/float_null.sahu --backend vm --typecheck
 
 See [Float and Null experimental semantics](docs/FLOAT_NULL.md).
+
+## Exact Decimal and Result[T] experiments (0.0.10)
+
+Decimal supports bounded exact base-10 arithmetic from String/Int,
+with explicit decimal_round and decimal_div scale/mode; Float conversion
+is forbidden. Result[T] offers typed Ok/Err values and try_json_parse
+converts JSON decoding errors into inspected Result values.
+
+    python -m samhus typecheck examples/decimal_result.sahu
+    python -m samhus run examples/decimal_result.sahu --backend tree --typecheck
+    python -m samhus run examples/decimal_result.sahu --backend vm --typecheck
+
+See [Decimal and Result limitations](docs/DECIMAL_RESULT.md).
+These are NOT native or audited financial/security primitives.

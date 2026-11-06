@@ -15,6 +15,8 @@ Only owner-approved decisions are final. Technical prototypes are reversible.
 | List[T] collections | Experimental | Immutable literals, indexing and append on tree/VM; syntax not final, native unsupported. |
 | Map[String,T] and JSON | Experimental | Immutable Maps, json_parse/json_encode now with Float/Null; no stable semantics approved. |
 | Float and Null types | Experimental | Finite binary64 Float with mixed arithmetic; explicit Null distinct from Unit. No permanent numeric/nullable model selected. |
+| Decimal with explicit rounding | Experimental | Exact bounded base-10 arithmetic, explicit half_even/half_up/down modes. No approved financial or precision guarantee. |
+| Result[T] values | Experimental | Typed Ok/Err helpers and try_json_parse, not a final language error model. |
 | Safe-core builtins | Experimental | assert, len, str and json_valid are provisional and tested across tree/VM; not approved stable stdlib. |
 | Formatting conventions | Experimental | AST formatter; does not preserve comments. |
 | Runtime limits | Experimental | Step/call depth ceilings; not a sandbox. |
