@@ -144,7 +144,11 @@ def compile_ast(program: Program) -> Bytecode:
             function.name, function.params, function.param_types,
             function.return_type, function.token, tuple(emit.code)
         ))
-    return Bytecode(tuple(functions))
+    program_code = Bytecode(tuple(functions))
+    # Validate internal control-flow invariants before the VM may execute it.
+    from .verify import verify_bytecode
+    verify_bytecode(program_code)
+    return program_code
 
 
 def compile_source(source: str) -> Bytecode:
