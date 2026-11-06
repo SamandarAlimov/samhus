@@ -4,6 +4,7 @@ from typing import Any
 
 from .errors import SamhusError
 from .lexer import Token, lex
+from .stdlib import BUILTIN_SIGNATURES
 
 
 @dataclass(frozen=True)
@@ -90,8 +91,8 @@ class Parser:
             name = self.expect("IDENT")
             if name.text in names:
                 raise SamhusError(f"Duplicate function {name.text!r}", name.line, name.column)
-            if name.text == "println":
-                raise SamhusError("'println' is a reserved builtin", name.line, name.column)
+            if name.text in BUILTIN_SIGNATURES:
+                raise SamhusError(f"{name.text!r} is a reserved builtin", name.line, name.column)
             names.add(name.text)
             self.expect("(")
             params: list[str] = []

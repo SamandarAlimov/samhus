@@ -8,6 +8,7 @@ from dataclasses import dataclass
 
 from .errors import SamhusError
 from .parser import Expr, Function, Program, Stmt, parse_program
+from .stdlib import BUILTIN_SIGNATURES
 
 Type = str
 ANY = "Any"
@@ -56,11 +57,16 @@ class TypeChecker:
         if expr.kind == "name":
             return self.resolve(expr.value, expr).type_name
         if expr.kind == "call":
-            if expr.value == "println":
-                if len(expr.args) != 1:
-                    self.fail(expr, f"println expects 1 argument, got {len(expr.args)}")
-                self.expr_type(expr.args[0])
-                return UNIT
+            signature = BUILTIN_SIGNATURES.get(expr.value)
+            if signature is not None:
+                params, return_type = signature
+                if len(expr.args) != len(params):
+                    self.fail(expr, f"{expr.value} expects {len(params)} argument, got {len(expr.args)}")
+                for argument, expected in zip(expr.args, params):
+                    actual = self.expr_type(argument)
+                    if expected != ANY:
+                        self.require(actual, expected, argument)
+                return return_type
             function = self.functions.get(expr.value)
             if function is None:
                 self.fail(expr, f"Undefined function {expr.value!r}")

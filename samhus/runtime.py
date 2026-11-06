@@ -7,6 +7,7 @@ import sys
 from .errors import SamhusError
 from .lexer import Token
 from .parser import Expr, Function, Program, Stmt, parse_program
+from .stdlib import BUILTIN_SIGNATURES, call_builtin
 
 
 Value = int | str | bool | None
@@ -68,12 +69,8 @@ class Interpreter:
 
     def invoke(self, name: str, args: tuple[Value, ...], token: Token) -> Value:
         self.tick(token)
-        if name == "println":
-            if len(args) != 1:
-                self.error(token, f"println expects 1 argument, got {len(args)}")
-            value = args[0]
-            print(str(value).lower() if type(value) is bool else value, file=self.output)
-            return None
+        if name in BUILTIN_SIGNATURES:
+            return call_builtin(name, args, token, self.output)
         function = self.functions.get(name)
         if function is None:
             self.error(token, f"Undefined function {name!r}")
