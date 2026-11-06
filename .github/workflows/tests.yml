@@ -69,6 +69,12 @@ jobs:
         run: python -m samhus run examples/modules/main.sahu --backend vm --typecheck
       - name: Generate multi-file native C source
         run: python -m samhus emit-c examples/modules/native_main.sahu
+      - name: Inspect validated control flow IR
+        run: python -m samhus ir examples/control_flow_ir.sahu
+      - name: Execute IR lowered example
+        run: python -m samhus run examples/control_flow_ir.sahu --backend ir --typecheck
+      - name: Execute multi-file IR backend
+        run: python -m samhus run examples/modules/main.sahu --backend ir --typecheck
       - name: Disassemble compiled program
         run: python -m samhus disasm examples/typed.sahu
       - name: Check AST serializer

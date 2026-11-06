@@ -100,3 +100,12 @@ native compilation, a sound typed subset, security and developer adoption.
 - [ ] Design real symbols/namespaces, modules and stable import diagnostics.
 - [ ] Typed IR and meaningful native full-language parity.
 - [ ] OS-backed isolation, full memory safety model, fuzzing, IDE and stdlib.
+
+## Unreleased CFG middle-end milestone
+
+- [x] Basic-block CFG with explicit edges and verified stack/scope states.
+- [x] IR verifier, unreachable block compaction and VM lowering.
+- [x] CLI IR viewer and differential regression tests.
+- [ ] Typed value-level IR, effect analysis and independent optimizations.
+- [ ] Native backend consuming IR with complete approved semantics.
+- [ ] Cross-platform memory safety and reproducible performance evidence.

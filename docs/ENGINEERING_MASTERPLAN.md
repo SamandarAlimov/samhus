@@ -52,7 +52,8 @@ conformance cases on all supported reference backends.
 
 ## Priority 2 — native compiler architecture (critical path)
 
-- [ ] Evaluate LLVM, portable C, and custom IR prototypes on real workloads.
+- [x] Prototype verified basic-block CFG IR and VM lowering.
+- [ ] Evaluate LLVM, portable C and future typed IR on measured workloads.
 - [ ] Choose an owner-reviewed intermediate representation and codegen backend.
 - [ ] Compile all approved primitive and collection operations correctly.
 - [ ] Define runtime/ABI, garbage-collection vs ownership tradeoffs, and FFI.

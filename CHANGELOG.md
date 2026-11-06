@@ -6,6 +6,13 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — control-flow IR (no version bump)
+
+- Added CFG middle-end: basic blocks, branch edges, entry state verification.
+- Unreachable block pruning; VM lowering and IR inspection CLI.
+- Differential conformance and malformed IR regression tests.
+- Native still AST-based; this is not typed SSA.
+
 ## Unreleased research — version policy correction & local modules
 
 - Reset package metadata and CLI version to 0.0.0.dev0, not a released 0.0.1.

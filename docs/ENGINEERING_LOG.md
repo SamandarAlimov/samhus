@@ -148,3 +148,13 @@ This is not a production compiler, finalized semantics or security sandbox.
   module and source budgets, and regression/CI examples.
 - The system still has no package manager, namespace/visibility model,
   full native semantic parity or security certification.
+
+## 2026-11-06 — CFG IR, no version bump
+
+- Added IR with named basic blocks, explicit jump edges and entry states.
+- Reused verifier control-flow analysis to check IR/bytecode consistency.
+- Added unreachable block removal, IR-to-bytecode lowering and CLI display.
+- IR backend uses existing VM, not independent native compilation.
+- Added malformed IR and 300 deterministic differential workload cases.
+- C11 native remains AST-based; typed SSA is NOT implemented.
+- Kept unreleased 0.0.0.dev0 identifier, no 0.0.1 yet.

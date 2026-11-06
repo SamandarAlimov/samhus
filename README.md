@@ -27,6 +27,18 @@ the package/language version for every added feature. The first `0.0.1`
 tag is reserved until the gates in [Release policy](docs/RELEASE_POLICY.md)
 are verified and authorized. The existing Git history is preserved.
 
+## Validated control-flow IR experiment
+
+An intermediate control-flow representation (CFG IR) now splits VM
+bytecode into basic blocks with explicit branch edges and verified
+stack/scope entry states. It can compact unreachable blocks, then
+lower back to VM bytecode. This is not typed SSA or native codegen.
+
+    python -m samhus ir examples/control_flow_ir.sahu
+    python -m samhus run examples/control_flow_ir.sahu --backend ir --typecheck
+
+See docs/CONTROL_FLOW_IR.md for accurate limitations.
+
 ## Multi-file program prototype
 
 Local modules now work across the file-aware CLI tools and both Python-hosted
@@ -150,6 +162,8 @@ sandbox, final ABI or production compiler. See docs/NATIVE_BACKEND.md.
 | samhus typecheck FILE | Experimental static type check |
 | samhus ast FILE | Print JSON syntax tree |
 | samhus disasm FILE | Print human-readable bytecode and source positions |
+| samhus ir FILE | Inspect validated basic-block control-flow IR |
+| samhus run FILE --backend ir | Verify IR, lower it, and execute with existing VM |
 | samhus fmt FILE | Print canonical formatting |
 | samhus fmt FILE --check | Fail if source is not canonical |
 | samhus fmt FILE --write | Rewrite only when no comments would be lost |
