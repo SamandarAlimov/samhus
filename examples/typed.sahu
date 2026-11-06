@@ -1,0 +1,23 @@
+// Experimental type annotations and functions.
+fn factorial(n: Int) -> Int {
+    if n <= 1 {
+        return 1
+    }
+    return n * factorial(n - 1)
+}
+
+fn describe(name: String, value: Int) -> String {
+    println(name)
+    println(value)
+    return "done"
+}
+
+fn main() -> Unit {
+    let company: String = "Alsamos"
+    var count: Int = 5
+    while count > 0 {
+        count = count - 1
+    }
+    println(factorial(5))
+    println(describe(company, count))
+}
