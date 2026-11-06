@@ -1,0 +1,22 @@
+// Experimental List types and safe indexing for AI/data workflows.
+// Lists are immutable, zero-based, and checked for index bounds.
+
+fn total(values: List[Int]) -> Int {
+    var result: Int = 0
+    var index: Int = 0
+    while index < len(values) {
+        result = result + values[index]
+        index = index + 1
+    }
+    return result
+}
+
+fn main() -> Unit {
+    let scores: List[Int] = [12, 18, 27]
+    let updated: List[Int] = append(scores, 43)
+    assert(len(scores) == 3)
+    assert(len(updated) == 4)
+    println("Samhus List example")
+    println(total(updated))
+    println(updated[3])
+}
