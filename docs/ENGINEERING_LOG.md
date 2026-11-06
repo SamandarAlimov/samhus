@@ -94,6 +94,6 @@ This is not a production compiler, finalized semantics or security sandbox.
 - Added BUILD_LIST/INDEX bytecode and verifier state accounting.
 - Added list length/append, safe index errors, Unicode string indexing.
 - Added deep equality with strict Bool-vs-Int distinction.
-- Added 56 new List tests and a 100-case generated indexing corpus.
+- Added 54 new List tests and a 100-case generated indexing corpus.
 - First test gate: 305/305 passed on 6 cross-platform CI jobs.
 - Native C11 remains incompatible and rejects unsupported List.
