@@ -12,6 +12,7 @@ Only owner-approved decisions are final. Technical prototypes are reversible.
 | Syntax | Experimental | fn, let/var, if/else, while, return, calls and primitive expressions. |
 | Optional type annotations | Experimental | Int, String, Bool, Unit, Any; runtime guards and opt-in typecheck. |
 | Static type system | Undecided | Current checker is a conservative prototype only. |
+| List[T] collections | Experimental | Immutable literals, indexing and append on tree/VM; syntax not final, native unsupported. |
 | Safe-core builtins | Experimental | assert, len, str and json_valid are provisional and tested across tree/VM; not approved stable stdlib. |
 | Formatting conventions | Experimental | AST formatter; does not preserve comments. |
 | Runtime limits | Experimental | Step/call depth ceilings; not a sandbox. |

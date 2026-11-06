@@ -2,6 +2,13 @@
 
 Prototype iterations, not stable releases.
 
+## 0.0.7 — 2026-11-06 (experimental)
+
+- Immutable List literals, nested List[T], index and bounds checks.
+- len(List), append(List, item), deep equality and friendly printing.
+- Tree/VM bytecode and static checker integration, generated tests.
+- Native C11 remains a deliberately limited subset.
+
 ## 0.0.6 — 2026-11-06 (experimental)
 
 - Added restricted C11 native compilation backend and standalone programs.

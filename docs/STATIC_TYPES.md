@@ -61,3 +61,11 @@ Expressions depending on Any can remain Any.
   require static annotations or which checker architecture will be used.
 
 Design experiments and tests are in tests/test_typecheck.py.
+
+
+## Nested List[T] experimental checking
+
+List[T] accepts recursive type arguments. Typed List literals are checked
+at their known element types, including nested ones and function arguments.
+Index results infer the element type, and append preserves typed List type
+where known. Dynamic Any remains an incomplete static safety boundary.

@@ -111,3 +111,11 @@ Never execute untrusted source code with this interpreter.
 These shared builtins work in both the tree and bytecode VM execution
 paths. They are NOT an official AI SDK, schema validator, memory-safety
 guarantee, complete standard library, or stable final syntax.
+
+
+## Experimental List (0.0.7)
+
+Collection literal [1, 2], nested List[T] annotations, index[i],
+len(List), functional append(List,value), and deep equality are available
+in tree/VM. Negative or invalid indexes raise diagnostics. Native C11
+remains unsupported. See [LISTS.md](LISTS.md).

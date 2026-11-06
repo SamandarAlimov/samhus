@@ -51,3 +51,12 @@ quality gates are documented in PRODUCT_REQUIREMENTS.md and QUALITY_GATES.md.
 Open founder decisions: .sahu extension, licensing/open-source model,
 production type semantics, compiler architecture, target platforms and
 investment/release schedule. No date or budget is committed here.
+
+
+## Data collection milestone — experimental 0.0.7
+
+- [x] Immutable List literals and recursive List[T] annotations in tree/VM.
+- [x] Bounds-checked indexing, persistent append, deep equality.
+- [x] Differential regression and generated indexing tests.
+- [ ] Full native collections with identical runtime semantics.
+- [ ] Maps, records, structured JSON, tensor libraries and concurrency.

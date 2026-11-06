@@ -85,3 +85,15 @@ This is not a production compiler, finalized semantics or security sandbox.
   and 100 deterministic arithmetic conformance examples.
 - Added native smoke in cross-platform CI and documented exclusions.
 - C11 is experimental, not a final compiler/ABI decision.
+
+
+## 2026-11-06 — immutable List foundation (0.0.7)
+
+- Added List literal and indexing AST, nested List[T] type spelling.
+- Added immutability via host tuple values and runtime typed element checks.
+- Added BUILD_LIST/INDEX bytecode and verifier state accounting.
+- Added list length/append, safe index errors, Unicode string indexing.
+- Added deep equality with strict Bool-vs-Int distinction.
+- Added 56 new List tests and a 100-case generated indexing corpus.
+- First test gate: 305/305 passed on 6 cross-platform CI jobs.
+- Native C11 remains incompatible and rejects unsupported List.
