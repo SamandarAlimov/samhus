@@ -46,7 +46,7 @@ class Program:
     functions: tuple[Function, ...]
 
 
-TYPE_NAMES = frozenset({"Int", "Float", "Decimal", "String", "Bool", "Null", "Unit", "Any", "List", "Map"})
+TYPE_NAMES = frozenset({"Int", "Float", "Decimal", "String", "Bool", "Null", "Unit", "Any", "List", "Map", "Result"})
 
 
 PRECEDENCE = {
@@ -83,7 +83,7 @@ class Parser:
         token = self.expect("IDENT")
         if token.text not in TYPE_NAMES:
             raise SamhusError(f"Unknown type {token.text!r}", token.line, token.column)
-        if token.text in {"List", "Map"}:
+        if token.text in {"List", "Map", "Result"}:
             if depth >= 24:
                 raise SamhusError("Type nesting exceeds maximum depth 24", token.line, token.column)
             self.expect("[")
@@ -97,7 +97,7 @@ class Parser:
                 return f"Map[String,{val}]"
             inner = self.parse_type(depth + 1)
             self.expect("]")
-            return f"List[{inner}]"
+            return f"{token.text}[{inner}]"
         return token.text
 
     def parse_program(self) -> Program:

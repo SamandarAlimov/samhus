@@ -9,7 +9,7 @@ from typing import Any, Callable, TextIO
 
 from .errors import SamhusError
 from .lexer import Token
-from .values import MAX_LIST_ITEMS, MAX_MAP_ITEMS, MapValue, NullValue, map_value, show, type_name as value_type_name
+from .values import MAX_LIST_ITEMS, MAX_MAP_ITEMS, MapValue, NullValue, ResultValue, map_value, show, type_name as value_type_name
 from .numbers import as_float, numeric
 from .decimal_core import make_decimal
 from .json_bridge import decode_json, encode_json
@@ -25,6 +25,13 @@ BUILTIN_SIGNATURES: dict[str, tuple[tuple[str, ...], str]] = {
     "is_null": (("Any",), "Bool"),
     "to_float": (("Any",), "Float"),
     "decimal": (("Any",), "Decimal"),
+    "result_ok": (("Any",), "Result[Any]"),
+    "result_err": (("String",), "Result[Any]"),
+    "result_is_ok": (("Any",), "Bool"),
+    "result_value": (("Any",), "Any"),
+    "result_error": (("Any",), "String"),
+    "result_or": (("Any", "Any"), "Any"),
+    "try_json_parse": (("String",), "Result[Any]"),
     "json_parse": (("String",), "Any"),
     "json_encode": (("Any",), "String"),
     "map_set": (("Any", "String", "Any"), "Any"),
@@ -69,6 +76,32 @@ def call_builtin(name: str, args: tuple[Any, ...], token: Token, output: TextIO)
         return type(value) is NullValue
     if name == "decimal":
         return make_decimal(value, token)
+    if name == "result_ok":
+        return ResultValue(True, value)
+    if name == "result_err":
+        return ResultValue(False, error=value)
+    if name == "try_json_parse":
+        try:
+            return ResultValue(True, decode_json(value, token))
+        except SamhusError as exc:
+            return ResultValue(False, error=str(exc))
+    if name in {"result_is_ok", "result_value", "result_error", "result_or"}:
+        if type(value) is not ResultValue:
+            raise SamhusError(f"{name} expects Result, got {type_name(value)}",
+                              token.line, token.column)
+        if name == "result_is_ok":
+            return value.ok
+        if name == "result_value":
+            if not value.ok:
+                raise SamhusError("Cannot extract value from Err: " + value.error,
+                                  token.line, token.column)
+            return value.value
+        if name == "result_error":
+            if value.ok:
+                raise SamhusError("Cannot extract error from Ok",
+                                  token.line, token.column)
+            return value.error
+        return value.value if value.ok else args[1]
     if name == "to_float":
         if not numeric(value):
             raise SamhusError(f"to_float expects Int or Float, got {type_name(value)}", token.line, token.column)

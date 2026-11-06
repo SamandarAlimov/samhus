@@ -10,7 +10,7 @@ from decimal import Decimal
 from .errors import SamhusError
 from .parser import Expr, Function, Program, Stmt, parse_program
 from .stdlib import BUILTIN_SIGNATURES
-from .values import element_type, map_value_type, NULL
+from .values import element_type, map_value_type, result_type, NULL
 
 Type = str
 ANY = "Any"
@@ -47,6 +47,9 @@ class TypeChecker:
         if a is not None and e is not None:
             return TypeChecker.compatible(a, e)
         a, e = map_value_type(actual), map_value_type(expected)
+        if a is not None and e is not None:
+            return TypeChecker.compatible(a, e)
+        a, e = result_type(actual), result_type(expected)
         return a is not None and e is not None and TypeChecker.compatible(a, e)
 
     def require(self, actual: Type, expected: Type, node: Expr | Stmt) -> None:
@@ -65,6 +68,9 @@ class TypeChecker:
             for entry in expr.args:
                 self.require_expr(entry.left, "String")
                 self.require_expr(entry.right, inner)
+        result_inner = result_type(expected)
+        if result_inner is not None and expr.kind == "call" and expr.value == "result_ok" and len(expr.args) == 1:
+            self.require_expr(expr.args[0], result_inner)
         actual = self.expr_type(expr)
         self.require(actual, expected, expr)
         return actual
@@ -120,6 +126,31 @@ class TypeChecker:
                 self.fail(expr, f"Indexing requires List or String, got {target}")
             return inner
         if expr.kind == "call":
+            if expr.value in {"result_ok", "result_err", "result_is_ok", "result_value",
+                              "result_error", "result_or", "try_json_parse"}:
+                required = {"result_or": 2, "result_ok": 1, "result_err": 1,
+                            "result_is_ok": 1, "result_value": 1, "result_error": 1,
+                            "try_json_parse": 1}[expr.value]
+                if len(expr.args) != required:
+                    plural = "argument" if required == 1 else "arguments"
+                    self.fail(expr, f"{expr.value} expects {required} {plural}, got {len(expr.args)}")
+                if expr.value in {"result_err", "try_json_parse"}:
+                    self.require_expr(expr.args[0], "String")
+                    return "Result[Any]"
+                if expr.value == "result_ok":
+                    return "Result[" + self.expr_type(expr.args[0]) + "]"
+                kind = self.expr_type(expr.args[0])
+                inner = result_type(kind)
+                if kind != ANY and inner is None:
+                    self.fail(expr.args[0], f"{expr.value} expects Result, got {kind}")
+                if expr.value == "result_is_ok":
+                    return "Bool"
+                if expr.value == "result_error":
+                    return "String"
+                if expr.value == "result_or":
+                    self.require_expr(expr.args[1], inner or ANY)
+                    return inner or ANY
+                return inner or ANY
             if expr.value == "decimal":
                 if len(expr.args) != 1:
                     self.fail(expr, f"decimal expects 1 argument, got {len(expr.args)}")

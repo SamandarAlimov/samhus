@@ -25,6 +25,21 @@ NULL = NullValue()
 
 
 @dataclass(frozen=True)
+class ResultValue:
+    """Experimental typed success or string-error value."""
+    ok: bool
+    value: Any = None
+    error: str = ""
+
+
+def result_type(annotation: str) -> str | None:
+    if annotation.startswith("Result[") and annotation.endswith("]"):
+        return annotation[7:-1]
+    return None
+
+
+
+@dataclass(frozen=True)
 class MapValue:
     """Internal immutable string-key map, insertion order preserved."""
     entries: tuple[tuple[str, Any], ...]
@@ -66,6 +81,8 @@ def type_name(value: Any) -> str:
         return "Float"
     if type(value) is Decimal:
         return "Decimal"
+    if type(value) is ResultValue:
+        return "Result[" + (type_name(value.value) if value.ok else "Any") + "]"
     if type(value) is NullValue:
         return "Null"
     if type(value) is str:
@@ -98,6 +115,9 @@ def accepts(expected: str | None, value: Any) -> bool:
     inner = element_type(expected)
     if inner is not None:
         return type(value) is tuple and all(accepts(inner, item) for item in value)
+    inner_result = result_type(expected)
+    if inner_result is not None:
+        return type(value) is ResultValue and (not value.ok or accepts(inner_result, value.value))
     value_type = map_value_type(expected)
     if value_type is not None:
         return type(value) is MapValue and all(accepts(value_type, v) for _, v in value.entries)
@@ -108,6 +128,9 @@ def structural_equal(left: Any, right: Any) -> bool:
     """Avoid Python's surprising True == 1 inside nested list values."""
     if type(left) is not type(right):
         return False
+    if type(left) is ResultValue:
+        return left.ok == right.ok and (structural_equal(left.value, right.value)
+               if left.ok else left.error == right.error)
     if type(left) is tuple:
         return len(left) == len(right) and all(
             structural_equal(a, b) for a, b in zip(left, right)
@@ -130,6 +153,9 @@ def show(value: Any) -> str:
         return "null"
     if type(value) is Decimal:
         return str(value)
+    if type(value) is ResultValue:
+        return ("Ok(" + show(value.value) + ")" if value.ok
+                else "Err(" + json.dumps(value.error, ensure_ascii=False) + ")")
     if type(value) is tuple:
         return "[" + ", ".join(json.dumps(x, ensure_ascii=False) if type(x) is str else show(x) for x in value) + "]"
     if type(value) is MapValue:
