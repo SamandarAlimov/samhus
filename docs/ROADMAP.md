@@ -14,11 +14,19 @@
 - JSON AST inspection and deterministic source formatter.
 - CLI integration, compatibility coverage and GitHub CI.
 
-## Milestone C — robust language core: not started
+## Owner-directed strategy (2026-11-06)
+
+Samhus must aim for C++-class practical systems capability, stability and
+safety **together with** Python-class AI workflow productivity.
+Implementation choices remain open. The measurable product requirements and
+quality gates are documented in PRODUCT_REQUIREMENTS.md and QUALITY_GATES.md.
+
+## Milestone C — robust language core: partially prototyped
 
 - Decide language's real first user problem and define approved semantics.
 - Improve static analysis and control-flow inference.
-- Explore data structures, modules, error handling and standard library.
+- [x] Prototype minimal typed safety/AI JSON validation builtins (not a full stdlib).
+- [ ] Explore data structures, modules, error handling and standard library.
 - Introduce intermediate representation, diagnostics and conformance
   cases after review.
 

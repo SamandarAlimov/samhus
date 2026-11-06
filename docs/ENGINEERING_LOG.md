@@ -58,3 +58,17 @@ This is not a production compiler, finalized semantics or security sandbox.
   all completed successfully at this milestone.
 - No native backend, portable artifact format or C++/Python language parity
   has been claimed.
+
+
+## 2026-11-06 — combined systems reliability + AI productivity direction
+
+- Recorded the owner's explicit objective to seek both C++-class practical
+  systems capability/safety and Python-class AI productivity.
+- Kept memory model, native backend, syntax and licensing undecided.
+- Added experimental shared builtin signatures/runtime support for
+  assert(Bool), len(String), str(Any) and json_valid(String).
+- Added typecheck integration and differential tests for tree and VM,
+  including deliberate failures and source error positions.
+- Hardened json_valid to reject nonstandard NaN/Infinity JSON constants.
+- Added PRODUCT_REQUIREMENTS and QUALITY_GATES with measurable evidence
+  required for actual competitiveness; did not claim parity or 0.9.9.

@@ -97,3 +97,17 @@ For canonical formatting: python -m samhus fmt examples/typed.sahu.
 Execution-step and recursion depth checks exist for educational experiments,
 but cannot prevent all resource exhaustion and are not a security sandbox.
 Never execute untrusted source code with this interpreter.
+
+
+## Experimental core functions (prototype 0.0.5)
+
+- println(value: Any) -> Unit: print one value.
+- assert(condition: Bool) -> Unit: fail with a source-positioned error if false.
+- len(text: String) -> Int: return Unicode code-point count for a string.
+- str(value: Any) -> String: convert primitive/Unit value to text.
+- json_valid(payload: String) -> Bool: check strict JSON syntax,
+  rejecting malformed JSON, NaN and Infinity.
+
+These shared builtins work in both the tree and bytecode VM execution
+paths. They are NOT an official AI SDK, schema validator, memory-safety
+guarantee, complete standard library, or stable final syntax.

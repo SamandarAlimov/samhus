@@ -1,7 +1,7 @@
 # Samhus — Alsamos programming-language research project
 
 **Samhus** is Alsamos's founder-approved programming-language name.
-The current software is **prototype 0.0.4**, not a production-ready language
+The current software is **prototype 0.0.5**, not a production-ready language
 or an implementation comparable in completeness to C++ or Python 3.13.
 
 Two independent execution paths are available for the experimental grammar:
@@ -40,6 +40,30 @@ python -m samhus run examples/typed.sahu --backend tree --typecheck
 There is **no PyPI package publication or official 0.9.9 release**.
 The local package name is samhus-prototype to distinguish these experiments
 from any future official distribution.
+
+## Long-term Samhus product direction
+
+The founder's goal is **C++-class systems capability, stability and
+safe-default behavior alongside Python-class productivity for AI and fast
+experimentation**. This is a development objective, NOT a current
+performance, memory-safety or ecosystem claim. C++ is not memory-safe
+by default; Python's AI strength comes largely from existing libraries.
+The accepted implementation approach is still undecided.
+
+Read [Product requirements](docs/PRODUCT_REQUIREMENTS.md) and
+[Quality / 0.9.9 evidence gates](docs/QUALITY_GATES.md).
+
+## Experimental AI/safety building blocks (0.0.5)
+
+The tree interpreter and bytecode VM now both support typed builtins:
+assert(Bool), len(String), str(Any) and json_valid(String).
+JSON syntax validation rejects malformed JSON and nonstandard numeric
+constants; **it does not validate an AI output schema** or connect to
+any AI model.
+
+~~~bash
+samhus run examples/ai_validation.sahu --typecheck --backend vm
+~~~
 
 ## Language example
 
@@ -85,7 +109,7 @@ silently deleting comments, fmt --write refuses files that contain them.
 
 ## Validation
 
-- 177 unittest test methods and a deterministic differential corpus that
+- An expanding unittest suite (177 tests at 0.0.4 plus new builtins tests) and a deterministic differential corpus that
   additionally checks 600 generated arithmetic, boolean and loop programs.
 - CI tests Python 3.11 and 3.13 on **Ubuntu, Windows and macOS** (6 jobs).
 - Each job exercises regression tests, editable CLI packaging, tree/VM runs,

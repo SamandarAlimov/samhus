@@ -5,6 +5,9 @@ with quality and capability competitive with established languages. This
 document is a target framework, NOT a declaration of parity with C++ or
 Python 3.13.
 
+Owner-level goals are now specified more explicitly in [PRODUCT_REQUIREMENTS](PRODUCT_REQUIREMENTS.md)
+and [QUALITY_GATES](QUALITY_GATES.md); these do not imply current parity.
+
 ## What "competitive" must mean
 
 1. Language correctness: documented semantics, conformance tests,

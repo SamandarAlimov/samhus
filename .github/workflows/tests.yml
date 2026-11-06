@@ -31,6 +31,10 @@ jobs:
         run: python -m samhus run examples/typed.sahu --typecheck --backend vm
       - name: Check typed program
         run: python -m samhus typecheck examples/typed.sahu
+      - name: Run experimental AI JSON validation on tree backend
+        run: python -m samhus run examples/ai_validation.sahu --backend tree --typecheck
+      - name: Run experimental AI JSON validation on VM backend
+        run: python -m samhus run examples/ai_validation.sahu --backend vm --typecheck
       - name: Disassemble compiled program
         run: python -m samhus disasm examples/typed.sahu
       - name: Check AST serializer

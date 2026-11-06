@@ -2,6 +2,14 @@
 
 Prototype iterations, not stable releases.
 
+## 0.0.5 — 2026-11-06 (experimental)
+
+- Typed core builtins for assertions, text length, string conversion,
+  and strict JSON syntax validation as an AI workflow building block.
+- Shared runtime behavior and opt-in static checker signatures.
+- Cross-backend tests for results, errors and invalid JSON inputs.
+- Documented combined systems/AI product requirements and quality gates.
+
 ## 0.0.4 — 2026-11-06
 
 - In-memory bytecode compiler and independently implemented stack VM.
