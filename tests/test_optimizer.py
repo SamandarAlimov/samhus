@@ -164,13 +164,21 @@ class OptimizerTests(unittest.TestCase):
         self.compare(main("println(1.0/0.0)"))
 
     def test_constant_discard(self):
-        code=main("42;println(99)")
-        optimized,stats=self.optimize(code)
-        self.assertGreaterEqual(stats.discarded_literals,1)
-        self.assertNotIn("POP", [ins.op for fn in optimized.functions
-                                 for b in fn.blocks for ins in b.instructions
-                                 if ins.op=="POP" and ins.arg==42])
-        self.compare(code,"99\n")
+        # The source language deliberately forbids standalone literal
+        # statements; test this low-level bytecode optimization directly.
+        from samhus.optimizer import _optimize_block
+        from samhus.bytecode import Instruction
+        from samhus.lexer import Token
+        token = Token("TEST", "", 1, 1)
+        sequence = (
+            Instruction("PUSH", 42, token),
+            Instruction("POP", None, token),
+            Instruction("RETURN_VOID", None, token),
+        )
+        reduced, stats = _optimize_block(sequence)
+        self.assertEqual(reduced, sequence[2:])
+        self.assertEqual(stats.discarded_literals, 1)
+        self.compare(main("println(99)"), "99\n")
 
     def test_source_step_count_preserved(self):
         code=main("var i=0;while i<10 {i=i+1};println(i)")
