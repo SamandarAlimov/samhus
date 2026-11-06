@@ -168,3 +168,13 @@ This is not a production compiler, finalized semantics or security sandbox.
 - 34 new unittest methods cover flow, CLI, errors and 150 generated cases.
 - This is NOT SSA, sound type checking, compiler independence or native IR.
 - Prototype remains 0.0.0.dev0; no official release or version bump.
+
+## 2026-11-06 — opt-in IR constant folding (unreleased)
+
+- Added `samhus/optimizer.py` with bounded pure binary/unary literal folds.
+- Added verified IR `--optimize` inspection and VM execution option.
+- Kept runtime diagnostics, function effects, short-circuit operations
+  and statement step budgets unchanged.
+- Added 39 test methods and 200 generated differential programs.
+- Native backend remains AST-based; no performance or typed-SSA claim.
+- Package remains `0.0.0.dev0`, no official release.

@@ -117,3 +117,11 @@ native compilation, a sound typed subset, security and developer adoption.
 - [x] Display per-instruction value stacks and locals via `ir --types`.
 - [ ] Sound typed subset, per-value SSA representation and ownership model.
 - [ ] Native code generator using typed IR with full approved semantics.
+
+## Experimental verified optimization research
+
+- [x] Opt-in basic-block constant folding with shared runtime arithmetic.
+- [x] Keep runtime failure behavior, side effects and step counters intact.
+- [x] Verify IR after rewriting; add 200 generated differential programs.
+- [ ] Inter-block propagation, sound effect analysis and typed SSA.
+- [ ] Independent IR-based native code generation with benchmarks.

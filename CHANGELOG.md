@@ -6,6 +6,12 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — verified IR literal folding
+
+- Opt-in local constant folding for bounded pure expressions.
+- IR optimize CLI and optimized VM execution, with differential tests.
+- Runtime errors and source-location semantics preserved; no native IR backend.
+
 ## Unreleased research — CFG stack-value type analysis
 
 - Experimental data-flow annotations for stack and locals in CFG IR.

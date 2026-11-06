@@ -27,6 +27,18 @@ the package/language version for every added feature. The first `0.0.1`
 tag is reserved until the gates in [Release policy](docs/RELEASE_POLICY.md)
 are verified and authorized. The existing Git history is preserved.
 
+## Opt-in CFG IR constant folding
+
+The experimental optimizer folds bounded, pure literal expressions and
+removes unused literal values **only within a basic block**. It keeps
+source TICKs, function calls, branching and runtime error behavior.
+No native or speed superiority is claimed.
+
+    python -m samhus ir examples/control_flow_ir.sahu --optimize
+    python -m samhus run examples/control_flow_ir.sahu --backend ir --optimize --typecheck
+
+See [optimizer design and limits](docs/IR_OPTIMIZATION.md).
+
 ## Conservative type-flow IR
 
 Run `python -m samhus ir examples/control_flow_ir.sahu --types` to
