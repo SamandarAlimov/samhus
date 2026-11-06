@@ -122,5 +122,24 @@ class FormatterTests(unittest.TestCase):
             self.assertIn("Formatting OK", check.stdout)
 
 
+
+    def test_cli_fmt_write_rejects_comment_loss(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "demo.sahu"
+            source = "fn main() { // important note\n println(42) }"
+            p.write_text(source)
+            out = subprocess.run([sys.executable, "-m", "samhus", "fmt", str(p), "--write"], text=True, capture_output=True)
+            self.assertEqual(out.returncode, 1)
+            self.assertIn("does not preserve comments", out.stderr)
+            self.assertEqual(p.read_text(), source)
+
+    def test_cli_fmt_accepts_comment_marker_inside_string(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "demo.sahu"
+            p.write_text('fn main(){println("https://alsamos.com")}')
+            out = subprocess.run([sys.executable, "-m", "samhus", "fmt", str(p), "--write"], text=True, capture_output=True)
+            self.assertEqual(out.returncode, 0, out.stderr)
+            self.assertIn("https://alsamos.com", p.read_text())
+
 if __name__ == "__main__":
     unittest.main()

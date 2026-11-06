@@ -72,3 +72,25 @@ def format_ast(program: Program) -> str:
 
 def format_program(source: str) -> str:
     return format_ast(parse_program(source))
+
+
+def contains_comments(source: str) -> bool:
+    """Recognize // comments while ignoring // inside quoted string literals."""
+    inside_string = False
+    escaped = False
+    index = 0
+    while index < len(source):
+        ch = source[index]
+        if inside_string:
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+            elif ch == '"':
+                inside_string = False
+        elif ch == '"':
+            inside_string = True
+        elif source.startswith("//", index):
+            return True
+        index += 1
+    return False

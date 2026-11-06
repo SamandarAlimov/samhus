@@ -6,7 +6,7 @@ import sys
 from . import __version__, parse, run, SamhusError
 from .typecheck import check_types
 from .astdump import dump_ast
-from .formatter import format_program
+from .formatter import format_program, contains_comments
 
 
 def positive_int(text: str) -> int:
@@ -58,6 +58,9 @@ def main(argv: list[str] | None = None) -> int:
                     return 1
                 print(f"Formatting OK: {args.file}")
             elif args.write:
+                if contains_comments(source):
+                    print("Refusing to overwrite source containing comments: formatter does not preserve comments", file=sys.stderr)
+                    return 1
                 args.file.write_text(formatted, encoding="utf-8")
                 print(f"Formatted: {args.file}")
             else:
