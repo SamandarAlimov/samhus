@@ -10,3 +10,10 @@
 8. Preserve public API compatibility where reasonable; discuss breaking changes before versions are released.
 9. Never commit secrets, user data, private keys, or copyrighted third-party code without authorization.
 10. Keep the CLI and examples working and update README whenever usage changes.
+
+11. Prefer proof-oriented milestone work over merely increasing versions or
+    collecting builtins. See docs/ENGINEERING_MASTERPLAN.md and the threat model.
+12. Treat untrusted source as hostile; never call a parser guard a sandbox.
+    Record failing examples and prevent Python host exceptions from leaking.
+13. Before claiming a stage complete, verify the latest commit CI on all
+    six jobs (Ubuntu/Windows/macOS x Python 3.11/3.13).

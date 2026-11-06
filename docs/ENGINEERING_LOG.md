@@ -127,3 +127,11 @@ This is not a production compiler, finalized semantics or security sandbox.
 - Added 75 regression methods on Decimal/Result and generated scenarios;
   first full CI gate 507 tests after explicit numeric rounding changes.
 - Native C11 remains incompatible; no complete memory-safety or financial audit.
+
+## 2026-11-06 — engineering priority reset and input hardening
+
+- Added input size, token count, number/string size and expression depth guards.
+- Added adversarial regression cases (malformed random inputs and tree/VM parity).
+- Established a staged plan emphasizing compiler correctness, safety, native
+  independence, AI/data integration and developer ecosystem over version counts.
+- No native parity, security audit or final architecture decision claimed.

@@ -253,3 +253,12 @@ converts JSON decoding errors into inspected Result values.
 
 See [Decimal and Result limitations](docs/DECIMAL_RESULT.md).
 These are NOT native or audited financial/security primitives.
+
+## Engineering master plan and safety policy
+
+The long-term goal is a native, safe-by-default systems language with
+productive AI/data workflows and usable developer tooling. These are
+measurable engineering goals, NOT claims of achieved parity with C++, Rust
+or Python. Read [engineering plan](docs/ENGINEERING_MASTERPLAN.md),
+[threat model](docs/THREAT_MODEL.md), and [input guards](docs/INPUT_SAFETY.md).
+Run adversarial tests through the existing cross-platform CI matrix.

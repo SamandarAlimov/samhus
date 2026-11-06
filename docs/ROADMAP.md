@@ -84,3 +84,9 @@ investment/release schedule. No date or budget is committed here.
 - [x] Typed Result[T], safe JSON error capture, regression coverage.
 - [ ] Native Decimal and Result parity, Option, full error propagation.
 - [ ] Independently reviewed accounting algorithms and memory model.
+
+## Forward engineering work
+
+See ENGINEERING_MASTERPLAN.md for the active dependency-based plan.
+Prototype feature-count growth is subordinate to correctness, independent
+native compilation, a sound typed subset, security and developer adoption.
