@@ -27,6 +27,27 @@ the package/language version for every added feature. The first `0.0.1`
 tag is reserved until the gates in [Release policy](docs/RELEASE_POLICY.md)
 are verified and authorized. The existing Git history is preserved.
 
+## Multi-file program prototype
+
+Local modules now work across the file-aware CLI tools and both Python-hosted
+execution backends. For example:
+
+```samhus
+import "lib/math.sahu"
+fn main() -> Unit {
+    println(double(21))
+}
+```
+
+```bash
+python -m samhus run examples/modules/main.sahu --backend vm --typecheck
+python -m samhus native examples/modules/native_main.sahu -o native-demo
+```
+
+Imports are confined to the entry directory, prohibit cycles, and merge
+functions into a temporary global namespace. This is NOT a complete module
+system. See [experimental module design](docs/MODULES.md).
+
 ## Install and try
 
 Requires Python 3.11+.
@@ -164,7 +185,7 @@ establish parity with optimized C++ or Python 3.13 language ecosystems.
 
 - Define and approve stable language semantics and source extension.
 - Complete native compiler (LLVM/IR or another backend) beyond the current limited C11 prototype.
-- Data structures, modules/packages, exceptions/results, richer types.
+- Complete modules/packages, full error propagation, mature data structures and audited type system.
 - Static type soundness, memory model, concurrency and system I/O.
 - Standard library, debugging/IDE integrations, release management.
 - Security review, fuzzing, compatibility and independent benchmarks.
@@ -272,3 +293,10 @@ measurable engineering goals, NOT claims of achieved parity with C++, Rust
 or Python. Read [engineering plan](docs/ENGINEERING_MASTERPLAN.md),
 [threat model](docs/THREAT_MODEL.md), and [input guards](docs/INPUT_SAFETY.md).
 Run adversarial tests through the existing cross-platform CI matrix.
+
+## Current release state
+
+**Unreleased `0.0.0.dev0`**, not 0.0.1. The earlier prototype labels
+are archived for engineering history, not published versions. The first real
+release follows [the release policy](docs/RELEASE_POLICY.md) and must be
+explicitly approved.

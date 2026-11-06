@@ -61,6 +61,14 @@ jobs:
         run: python -m samhus run examples/decimal_result.sahu --backend tree --typecheck
       - name: Run Decimal and Result on VM
         run: python -m samhus run examples/decimal_result.sahu --backend vm --typecheck
+      - name: Typecheck multi-file example
+        run: python -m samhus typecheck examples/modules/main.sahu
+      - name: Execute multi-file example on tree
+        run: python -m samhus run examples/modules/main.sahu --backend tree --typecheck
+      - name: Execute multi-file example on VM
+        run: python -m samhus run examples/modules/main.sahu --backend vm --typecheck
+      - name: Generate multi-file native C source
+        run: python -m samhus emit-c examples/modules/native_main.sahu
       - name: Disassemble compiled program
         run: python -m samhus disasm examples/typed.sahu
       - name: Check AST serializer

@@ -42,7 +42,8 @@ corpus; no discrepancy concealed; all CI targets pass.
 - [ ] Review syntax, lexical rules, scope, effect and error semantics.
 - [ ] Define structured Record/Struct and explicit nullable/Option types.
 - [ ] Define generics, traits/interfaces, immutable vs mutable collection rules.
-- [ ] Implement module imports, package boundaries and versioning.
+- [x] Prototype local multi-file imports under a confined project root.
+- [ ] Design proper namespaces, package boundaries and dependency versioning.
 - [ ] Move from optional checker to sound typed subset with clear Any boundary.
 - [ ] Define numeric precision, conversion and overflow policies.
 

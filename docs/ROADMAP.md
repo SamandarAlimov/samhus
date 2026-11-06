@@ -90,3 +90,13 @@ investment/release schedule. No date or budget is committed here.
 See ENGINEERING_MASTERPLAN.md for the active dependency-based plan.
 Prototype feature-count growth is subordinate to correctness, independent
 native compilation, a sound typed subset, security and developer adoption.
+
+## Pre-release engineering work — no version inflation
+
+- [x] Reset unreleased package identifier to `0.0.0.dev0`.
+- [x] Define explicit first official `0.0.1` readiness gate.
+- [x] Prototype confined local imports for multi-file applications.
+- [x] Cross-backend module testing, native subset integration and path checks.
+- [ ] Design real symbols/namespaces, modules and stable import diagnostics.
+- [ ] Typed IR and meaningful native full-language parity.
+- [ ] OS-backed isolation, full memory safety model, fuzzing, IDE and stdlib.

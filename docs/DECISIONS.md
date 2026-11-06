@@ -8,6 +8,8 @@ Only owner-approved decisions are final. Technical prototypes are reversible.
 | Long-term product objective | Confirmed | Aim for C++-class systems capability, stability and safety alongside Python-class AI productivity; these are goals, not current capabilities. |
 | Repository | Confirmed | SamandarAlimov/samhus. |
 | Source extension | Pending confirmation | .sahu is proposed and used for experiments. |
+| Release identity | Owner-directed correction | 0.0.0.dev0 is an internal *unreleased* placeholder; prior 0.0.1–0.0.10 labels were research iterations only, no released Samhus 0.0.1. |
+| Local file imports | Experimental | Confined string path imports, flat global function linking. Namespace/package syntax undecided. |
 | Prototype implementation | Experimental | Python standard-library interpreter. |
 | Syntax | Experimental | fn, let/var, if/else, while, return, calls and primitive expressions. |
 | Optional type annotations | Experimental | Int, String, Bool, Unit, Any; runtime guards and opt-in typecheck. |

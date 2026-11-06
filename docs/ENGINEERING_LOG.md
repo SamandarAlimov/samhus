@@ -135,3 +135,16 @@ This is not a production compiler, finalized semantics or security sandbox.
 - Established a staged plan emphasizing compiler correctness, safety, native
   independence, AI/data integration and developer ecosystem over version counts.
 - No native parity, security audit or final architecture decision claimed.
+
+## 2026-11-06 — version correction and multi-file build foundation
+
+- Corrected package and CLI identifier to `0.0.0.dev0` (unreleased).
+- Archived earlier research labels without claiming any official release.
+- Created release requirements and a regression check for version identity.
+- Added local module AST parsing and confined relative file loading.
+- Integrated multi-file linking with checker, interpreter, VM, AST/disassembly
+  and restricted native C compilation.
+- Added import validation, symlink/path traversal defense, cycle detection,
+  module and source budgets, and regression/CI examples.
+- The system still has no package manager, namespace/visibility model,
+  full native semantic parity or security certification.
