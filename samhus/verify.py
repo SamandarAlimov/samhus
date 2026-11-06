@@ -41,6 +41,10 @@ def verify_function(function: Code) -> None:
             popped, pushed = 2, 1
         elif op == "INDEX":
             popped, pushed = 2, 1
+        elif op == "BUILD_MAP":
+            if type(arg) is not int or arg < 0:
+                raise BytecodeValidationError(f"{function.name}: malformed BUILD_MAP at {ip}")
+            popped, pushed = 2 * arg, 1
         elif op == "BUILD_LIST":
             if type(arg) is not int or arg < 0:
                 raise BytecodeValidationError(f"{function.name}: malformed BUILD_LIST at {ip}")

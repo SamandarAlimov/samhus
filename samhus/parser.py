@@ -44,7 +44,7 @@ class Program:
     functions: tuple[Function, ...]
 
 
-TYPE_NAMES = frozenset({"Int", "String", "Bool", "Unit", "Any", "List"})
+TYPE_NAMES = frozenset({"Int", "String", "Bool", "Unit", "Any", "List", "Map"})
 
 
 PRECEDENCE = {
@@ -81,10 +81,18 @@ class Parser:
         token = self.expect("IDENT")
         if token.text not in TYPE_NAMES:
             raise SamhusError(f"Unknown type {token.text!r}", token.line, token.column)
-        if token.text == "List":
+        if token.text in {"List", "Map"}:
             if depth >= 24:
                 raise SamhusError("Type nesting exceeds maximum depth 24", token.line, token.column)
             self.expect("[")
+            if token.text == "Map":
+                key = self.parse_type(depth + 1)
+                if key != "String":
+                    raise SamhusError("Map key type must be String", token.line, token.column)
+                self.expect(",")
+                val = self.parse_type(depth + 1)
+                self.expect("]")
+                return f"Map[String,{val}]"
             inner = self.parse_type(depth + 1)
             self.expect("]")
             return f"List[{inner}]"
@@ -204,6 +212,18 @@ class Parser:
                         break
             self.expect("]")
             left = Expr("list", token, args=tuple(elements))
+        elif self.accept("{"):
+            entries: list[Expr] = []
+            if self.current.kind != "}":
+                while True:
+                    key = self.expression()
+                    self.expect(":")
+                    value = self.expression()
+                    entries.append(Expr("map_entry", key.token, left=key, right=value))
+                    if not self.accept(","):
+                        break
+            self.expect("}")
+            left = Expr("map", token, args=tuple(entries))
         else:
             raise SamhusError("Expected expression", token.line, token.column)
 

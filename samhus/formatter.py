@@ -21,6 +21,8 @@ def _expr(node: Expr) -> str:
         return f"{node.value}({', '.join(_expr(arg) for arg in node.args)})"
     if node.kind == "list":
         return "[" + ", ".join(_expr(item) for item in node.args) + "]"
+    if node.kind == "map":
+        return "{" + ", ".join(_expr(item.left) + ": " + _expr(item.right) for item in node.args) + "}"
     if node.kind == "index":
         return f"{_expr(node.left)}[{_expr(node.right)}]"
     if node.kind == "unary":

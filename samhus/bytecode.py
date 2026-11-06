@@ -81,6 +81,11 @@ class _Emitter:
             for argument in expr.args:
                 self.expression(argument)
             self.emit("BUILD_LIST", len(expr.args), expr.token)
+        elif kind == "map":
+            for entry in expr.args:
+                self.expression(entry.left)
+                self.expression(entry.right)
+            self.emit("BUILD_MAP", len(expr.args), expr.token)
         elif kind == "index":
             self.expression(expr.left)
             self.expression(expr.right)

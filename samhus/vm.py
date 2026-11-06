@@ -13,7 +13,7 @@ from .errors import SamhusError
 from .lexer import Token
 from .runtime import Binding, Value, value_type
 from .stdlib import BUILTIN_SIGNATURES, call_builtin
-from .values import accepts, build_list, index_of, structural_equal
+from .values import accepts, build_list, index_of, map_value, structural_equal
 
 
 @dataclass
@@ -165,6 +165,12 @@ class VirtualMachine:
                 if count:
                     del stack[-count:]
                 stack.append(build_list(items, token))
+            elif op == "BUILD_MAP":
+                count = arg
+                flat = tuple(stack[-2 * count:]) if count else ()
+                if count:
+                    del stack[-2 * count:]
+                stack.append(map_value(tuple(zip(flat[::2], flat[1::2])), token))
             elif op == "INDEX":
                 index, sequence = stack.pop(), stack.pop()
                 stack.append(index_of(sequence, index, token))

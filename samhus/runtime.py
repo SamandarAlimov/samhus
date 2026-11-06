@@ -8,10 +8,10 @@ from .errors import SamhusError
 from .lexer import Token
 from .parser import Expr, Function, Program, Stmt, parse_program
 from .stdlib import BUILTIN_SIGNATURES, call_builtin
-from .values import accepts, build_list, index_of, structural_equal, type_name
+from .values import accepts, build_list, index_of, map_value, structural_equal, type_name, MapValue
 
 
-Value = int | str | bool | None | tuple
+Value = int | str | bool | None | tuple | MapValue
 
 
 @dataclass
@@ -100,6 +100,9 @@ class Interpreter:
             return self.lookup(expr.value, expr).value
         if expr.kind == "list":
             return build_list(tuple(self.evaluate(item) for item in expr.args), expr.token)
+        if expr.kind == "map":
+            pairs = tuple((self.evaluate(entry.left), self.evaluate(entry.right)) for entry in expr.args)
+            return map_value(pairs, expr.token)
         if expr.kind == "index":
             sequence = self.evaluate(expr.left)
             index = self.evaluate(expr.right)
