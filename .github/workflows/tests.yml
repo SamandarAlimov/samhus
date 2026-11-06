@@ -95,6 +95,10 @@ jobs:
         run: python -m samhus disasm examples/typed.sahu
       - name: Check AST serializer
         run: python -m samhus ast examples/typed.sahu
+      - name: Emit C11 source from Value IR
+        run: python -m samhus emit-ir-c examples/native_value_ir.sahu
+      - name: Build and run standalone Value IR native executable
+        run: python scripts/native_value_ir_smoke.py
       - name: Compile and run native executable
         run: python scripts/native_smoke.py
       - name: Run smoke benchmark

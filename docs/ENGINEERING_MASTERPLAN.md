@@ -55,6 +55,7 @@ conformance cases on all supported reference backends.
 - [x] Prototype verified basic-block CFG IR and VM lowering.
 - [x] Prototype conservative CFG stack/local type-flow annotations.
 - [x] Research stack-value def/use graph with PHIs at CFG merges.
+- [x] Trial tiny independent Value IR -> C11 code generation with PHI moves.
 - [ ] Design a sound typed, effect-aware operation/SSA IR with local-variable SSA.
 - [ ] Evaluate LLVM, portable C and future typed IR on measured workloads.
 - [ ] Choose an owner-reviewed intermediate representation and codegen backend.

@@ -14,8 +14,10 @@ definition and its uses explicit, with stable identifiers per instruction.
 Source -> AST -> verified stack bytecode -> CFG IR -> conservative type
 flow -> Value IR with def/use relationships and stack PHI nodes.
 
-Value IR is an analysis overlay. It is not currently used by VM or C11
-native code generation. Running the sample still uses the existing VM.
+Value IR is an analysis overlay for the general language. A new **separate
+very small Value IR -> C11 native research backend** consumes it only for
+pure Int/Bool/if/short-circuit programs, documented in NATIVE_VALUE_IR.md.
+The full language still runs on interpreter/VM; this is not native parity.
 
 ## Commands
 
@@ -65,9 +67,11 @@ requires independent SSA dominance and effect-aware semantics.
 ## Safety boundaries and next steps
 
 - No changes to runtime output or error order in this pass.
-- No native binary is generated from Value IR.
+- A tiny C11 native backend now consumes Value IR for Int/Bool/if only;
+  this is far from a full native compiler.
 - Current optimizer still operates on CFG stack bytecode, not Value IR.
-- Phi nodes are descriptive and are not lowered to native registers yet.
+- Phi edge moves are lowered to C temporary registers in the tiny native
+  subset; general SSA register lowering remains unimplemented.
 - Next: separate typed operations with explicit effects; define dominance
   rules, SSA for mutable locals, and independently tested value lowering.
 - Benchmark a standalone IR-native subset before making performance claims.

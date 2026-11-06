@@ -188,3 +188,14 @@ This is not a production compiler, finalized semantics or security sandbox.
 - Added 36 regression methods including 180 generated branch/loop programs.
 - **Not** full SSA: mutable locals remain opaque; no native code generation.
 - Kept `0.0.0.dev0`, with no official 0.0.1 release.
+
+## 2026-11-07 (Asia/Tashkent) — independent tiny Value IR C11 backend
+
+- Added `samhus/native_value_ir.py`, independent of AST-to-C emitter.
+- Lowered stack Value IR producers and PHI edge moves to C11 temporaries.
+- Used checked 64-bit arithmetic helpers, explicit type/operation rejection.
+- Added `emit-ir-c`, `native-ir`, and native sample with 26 regression methods.
+- Added VM-native executable comparisons and six-platform smoke test.
+- Scope intentionally limited: pure Int/Bool/if/short-circuit; no locals,
+  loops, user functions, strings or full-language native parity.
+- Package remains `0.0.0.dev0`, official 0.0.1 not released.

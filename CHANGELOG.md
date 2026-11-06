@@ -6,6 +6,13 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — independent tiny Value IR -> C11
+
+- Separate native code generator from Value IR producer IDs and PHI edge moves.
+- Checked Int64 and Bool/if/short-circuit subset; unsupported features rejected.
+- `emit-ir-c` and `native-ir` CLI plus VM-to-native cross-platform tests.
+- No full-language native equivalence or release version increase.
+
 ## Unreleased research — Value IR stack graph (no version bump)
 
 - Named evaluation-stack producers/uses and PHI nodes at CFG merges.

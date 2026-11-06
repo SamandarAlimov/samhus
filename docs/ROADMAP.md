@@ -134,3 +134,11 @@ native compilation, a sound typed subset, security and developer adoption.
 - [ ] Proper SSA for mutable locals, dominance rules and effect-aware IR.
 - [ ] Code generation from SSA/value IR to native machine code.
 - [ ] Benchmark and establish genuine native/runtime parity.
+
+## Independent Value IR-native proof of concept
+
+- [x] Lower Value IR PHI merges and pure Int/Bool/if to C11 executable.
+- [x] Preserve checked Int64 native numeric rules, reject unsupported features.
+- [x] Multi-OS VM-versus-native smoke and signed arithmetic regression tests.
+- [ ] Variable/loop/function native lowering and general semantic equivalence.
+- [ ] Sound SSA, memory ownership, complete ABI and production runtime.
