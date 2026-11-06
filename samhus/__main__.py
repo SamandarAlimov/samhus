@@ -63,6 +63,12 @@ def main(argv: list[str] | None = None) -> int:
     disasm_parser.add_argument("file", type=Path)
     emit_parser = subcommands.add_parser("emit-c", help="Generate C11 source from experimental typed subset")
     emit_parser.add_argument("file", type=Path)
+    native_ir_parser = subcommands.add_parser("native-ir", help="Build standalone C11 executable from tiny Value IR subset")
+    native_ir_parser.add_argument("file", type=Path)
+    native_ir_parser.add_argument("-o", "--output", required=True, type=Path)
+    native_ir_parser.add_argument("--cc", default=None, help="Compiler executable (default: cc/gcc/clang)")
+    emit_ir_parser = subcommands.add_parser("emit-ir-c", help="Generate C11 code from tiny verified Value IR subset")
+    emit_ir_parser.add_argument("file", type=Path)
     native_parser = subcommands.add_parser("native", help="Build standalone executable using system C compiler")
     native_parser.add_argument("file", type=Path)
     native_parser.add_argument("-o", "--output", required=True, type=Path)
@@ -85,8 +91,15 @@ def main(argv: list[str] | None = None) -> int:
             print(dump_program(program))
         elif args.command == "emit-c":
             sys.stdout.write(emit_program_c(program))
-        elif args.command == "native":
-            compiled = emit_program_c(program)
+        elif args.command == "emit-ir-c":
+            from .native_value_ir import emit_value_ir_c
+            sys.stdout.write(emit_value_ir_c(program))
+        elif args.command in {"native", "native-ir"}:
+            if args.command == "native-ir":
+                from .native_value_ir import emit_value_ir_c
+                compiled = emit_value_ir_c(program)
+            else:
+                compiled = emit_program_c(program)
             compiler = args.cc or next((name for name in ("cc", "gcc", "clang") if shutil.which(name)), None)
             if compiler is None or shutil.which(compiler) is None:
                 print("samhus: no C compiler found (cc/gcc/clang required)", file=sys.stderr)

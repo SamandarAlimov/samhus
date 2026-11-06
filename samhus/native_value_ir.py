@@ -38,11 +38,13 @@ def _emit_edge(lines: list[str], predecessor: str, target: str, blocks) -> None:
         if len(matched) != 1:
             raise ValueError("Invalid native Value IR PHI predecessor")
         incoming.append((phi.result, matched[0]))
+    lines.append("    {")
     for index, (_, source) in enumerate(incoming):
         lines.append(f"        int64_t sh_move_{index} = {_symbol(source)};")
     for index, (destination, _) in enumerate(incoming):
         lines.append(f"        {_symbol(destination)} = sh_move_{index};")
     lines.append(f"        goto shb_{target};")
+    lines.append("    }")
 
 
 def _emit_c(value: ValueProgram) -> str:
