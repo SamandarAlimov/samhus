@@ -2,6 +2,14 @@
 
 Prototype iterations, not stable releases.
 
+## 0.0.6 — 2026-11-06 (experimental)
+
+- Added restricted C11 native compilation backend and standalone programs.
+- New commands: emit-c and native with -o output.
+- Explicit type requirements and checked Int64 overflow behavior.
+- Native executable tests including 100 deterministic arithmetic cases.
+- Cross-platform native build smoke, documentation and safety limitations.
+
 ## 0.0.5 — 2026-11-06 (experimental)
 
 - Typed core builtins for assertions, text length, string conversion,

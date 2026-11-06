@@ -72,3 +72,16 @@ This is not a production compiler, finalized semantics or security sandbox.
 - Hardened json_valid to reject nonstandard NaN/Infinity JSON constants.
 - Added PRODUCT_REQUIREMENTS and QUALITY_GATES with measurable evidence
   required for actual competitiveness; did not claim parity or 0.9.9.
+
+## 2026-11-06 — experimental native C11 compiler (0.0.6)
+
+- Added strict typed-subset source-to-C11 generator with source diagnostics.
+- Introduced checked signed-64-bit arithmetic to prevent C signed overflow
+  in supported numeric operations; explicitly documented the difference
+  from the tree/VM arbitrary-precision integer semantics.
+- Added emit-c and native CLI commands, with a user-installed C compiler.
+- Generated executables run without Python. The compiler still uses Python.
+- Added recursion, loops, Unicode, function call evaluation order, overflow
+  and 100 deterministic arithmetic conformance examples.
+- Added native smoke in cross-platform CI and documented exclusions.
+- C11 is experimental, not a final compiler/ABI decision.

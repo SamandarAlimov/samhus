@@ -18,6 +18,7 @@ Only owner-approved decisions are final. Technical prototypes are reversible.
 | Compiler implementation language | Undecided | Python bootstrap does not decide final compiler technology. |
 | Bytecode compiler and VM | Experimental | Python-hosted in-memory compilation and VM; not approved as final backend. |
 | Bytecode verification | Experimental | Checks internal jump, stack and scope invariants. |
+| Experimental C11 native subset | Experimental | Typed, checked signed-64-bit lowering and standalone executable using a C compiler; not full language parity. |
 | LLVM/Wasm/native targets | Undecided | No selected production backend architecture. |
 | License and open-source policy | Undecided | No LICENSE file; public repo is not automatically open-source. |
 | Memory model | Undecided | No approved GC, ownership or manual memory model. |

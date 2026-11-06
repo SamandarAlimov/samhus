@@ -17,7 +17,7 @@ A release is allowed to claim only what it has actually demonstrated.
 
 ## Proposed native alpha gate (future)
 
-- Emit a standalone binary for at least one explicitly chosen target.
+- Emit standalone binaries for full approved language semantics, not just the restricted C11 subset.
 - Build reproducible end-to-end programs without installed Python.
 - Verify parser/semantic consistency and predictable error behavior.
 - Publish sanitizer and fuzz-testing results, including known limitations.
@@ -64,7 +64,7 @@ that measurement.
 
 ## Explicit nonclaims today
 
-- No native machine-code backend.
+- No complete native machine-code backend; only restricted experimental C11 lowering.
 - No defined memory-safety model or verified sandbox.
 - No AI inference or model framework integrated into the language.
 - No C++ performance parity or Python ecosystem parity.

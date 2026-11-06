@@ -1,10 +1,12 @@
 # Samhus — Alsamos programming-language research project
 
 **Samhus** is Alsamos's founder-approved programming-language name.
-The current software is **prototype 0.0.5**, not a production-ready language
+The current software is **prototype 0.0.6**, not a production-ready language
 or an implementation comparable in completeness to C++ or Python 3.13.
 
-Two independent execution paths are available for the experimental grammar:
+A restricted third path can now produce standalone native C11 executables via a system C compiler. The compiler itself still needs Python and this does not support the full Samhus grammar.
+
+Two Python-hosted execution paths remain available for the experimental grammar:
 
 1. **Tree interpreter:** directly evaluates the parsed syntax tree.
 2. **Stack bytecode compiler + VM:** compiles parsed code to in-memory
@@ -88,6 +90,23 @@ Alsamos
 120
 ~~~
 
+## Experimental native executable backend
+
+New in 0.0.6: a strictly annotated subset of Samhus is compiled to C11 and then
+to a standalone executable using cc/gcc/clang. The output does not need
+Python to run. The Samhus compiler itself still needs Python at build time.
+
+~~~bash
+samhus emit-c examples/native.sahu > generated.c
+samhus native examples/native.sahu -o native-demo
+./native-demo
+~~~
+
+Native Int in this experiment is checked SIGNED 64-BIT, whereas the existing
+tree/VM Int is arbitrary precision. The backend rejects unsupported source,
+untyped declarations, and non-supported builtins. It is not a security
+sandbox, final ABI or production compiler. See docs/NATIVE_BACKEND.md.
+
 ## CLI reference
 
 | Command | Meaning |
@@ -103,6 +122,8 @@ Alsamos
 | samhus fmt FILE | Print canonical formatting |
 | samhus fmt FILE --check | Fail if source is not canonical |
 | samhus fmt FILE --write | Rewrite only when no comments would be lost |
+| samhus emit-c FILE | Generate research C11 source for strictly typed subset |
+| samhus native FILE -o OUTPUT | Build Python-free executable with installed C compiler |
 
 Formatter warning: comments are not preserved by the formatter. To avoid
 silently deleting comments, fmt --write refuses files that contain them.
@@ -132,7 +153,7 @@ establish parity with optimized C++ or Python 3.13 language ecosystems.
 ## Critical outstanding work
 
 - Define and approve stable language semantics and source extension.
-- Real native compiler (LLVM or another backend), IR and ABI research.
+- Complete native compiler (LLVM/IR or another backend) beyond the current limited C11 prototype.
 - Data structures, modules/packages, exceptions/results, richer types.
 - Static type soundness, memory model, concurrency and system I/O.
 - Standard library, debugging/IDE integrations, release management.
@@ -143,6 +164,7 @@ No version number implies quality or completeness without satisfying them.
 
 ## Source and governance
 
+- [Native C11 research backend](docs/NATIVE_BACKEND.md)
 - [Bytecode architecture](docs/BYTECODE.md)
 - [Experimental language reference](docs/LANGUAGE.md)
 - [Static type checker notes](docs/STATIC_TYPES.md)

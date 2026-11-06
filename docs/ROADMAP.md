@@ -34,6 +34,8 @@ quality gates are documented in PRODUCT_REQUIREMENTS.md and QUALITY_GATES.md.
 
 - [x] Create in-memory bytecode compiler, VM and control-flow verifier.
 - [x] Differentially compare tree and VM output across hundreds of generated cases.
+- [x] Prototype limited C11 lowering, overflow checks and standalone executable.
+- [ ] Preserve arbitrary-precision Int semantics in a full native backend.
 - [ ] Compare typed IR, Wasm and LLVM native backends.
 - Benchmark real programs and choose architecture after owner approval.
 - Validate memory model, ABI, interoperability and portability.
