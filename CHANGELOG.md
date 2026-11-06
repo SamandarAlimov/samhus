@@ -6,6 +6,13 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — scoped locals and loops in native Value IR
+
+- Int/Bool local variables, lexical shadowing, assignment and nested while.
+- Native 100000-step TICK limit prevents infinite source loops from hanging.
+- New scope/loop regression cases and cross-platform native binary smoke.
+- No general functions, native types, ownership or 0.0.1 release.
+
 ## Unreleased research — independent tiny Value IR -> C11
 
 - Separate native code generator from Value IR producer IDs and PHI edge moves.

@@ -199,3 +199,16 @@ This is not a production compiler, finalized semantics or security sandbox.
 - Scope intentionally limited: pure Int/Bool/if/short-circuit; no locals,
   loops, user functions, strings or full-language native parity.
 - Package remains `0.0.0.dev0`, official 0.0.1 not released.
+
+## 2026-11-07 — Native Value IR locals, loops and checked step budget
+
+- Extended the independent Value IR-to-C11 backend to typed/inferred
+  Int/Bool locals, assignments and lexical shadowing.
+- Added nested while loops and conditional mutation with compile-time
+  lexical resolution into unique C storage cells.
+- Enforced a fixed 100000-source-TICK budget at native runtime.
+- Added 25 regression methods with interpreter/native comparisons, overflow,
+  nested scopes, nontermination protection and generated loops.
+- Updated cross-platform smoke to compile two distinct native examples.
+- Still no user function calls, arbitrary-precision native Int, typed SSA
+  locals or audited memory model. Metadata remains 0.0.0.dev0.

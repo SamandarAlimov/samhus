@@ -30,14 +30,17 @@ are verified and authorized. The existing Git history is preserved.
 ## Tiny native Value IR backend — experimental
 
 An **independent Value IR -> C11 code generation path** is available
-for a deliberately tiny pure typed Int64/Bool subset with `if/else`,
-short-circuit booleans, `println` and `assert`. It emits PHI edge moves,
+for a restricted typed Int64/Bool subset with `if/else`, short-circuit
+booleans, scoped `let`/`var` variables, `while` loops, `println` and `assert`.
+It emits PHI edge moves,
 uses checked signed-64-bit helpers and produces Python-independent
-executables via an external C compiler. Variables, loops, full functions,
+executables via an external C compiler. General user functions,
 Float, String, Map/List, Decimal and Result are **not supported**.
+There is a fixed 100000-step native loop/statement budget, but no OS sandbox.
 
     python -m samhus emit-ir-c examples/native_value_ir.sahu
     python -m samhus native-ir examples/native_value_ir.sahu -o native-demo
+    python -m samhus native-ir examples/native_value_ir_locals.sahu -o native-loops
 
 This does not mean full language native compatibility or C++ performance.
 See [native Value IR limits](docs/NATIVE_VALUE_IR.md).

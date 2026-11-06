@@ -142,3 +142,11 @@ native compilation, a sound typed subset, security and developer adoption.
 - [x] Multi-OS VM-versus-native smoke and signed arithmetic regression tests.
 - [ ] Variable/loop/function native lowering and general semantic equivalence.
 - [ ] Sound SSA, memory ownership, complete ABI and production runtime.
+
+## Native Value IR: scoped variables and loops
+
+- [x] Int/Bool lexical locals, assignments, shadowing and inference.
+- [x] Nested while and if/else with fixed source-TICK budget.
+- [x] Standalone native executable tests and cross-platform smoke.
+- [ ] Typed user-function calls, ABI, stack/call depth and return handling.
+- [ ] General native data model and sound typed/SSA representation.
