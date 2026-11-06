@@ -205,8 +205,12 @@ class TypeChecker:
                 if op == "+" and (left == "String" or right == "String"):
                     if left == ANY or right == ANY:
                         return ANY
-                    # The other known type is numeric, not String.
-                    self.require(left if left != "String" else right, "String", expr)
+                    # Keep the previous type diagnostic for numeric+text.
+                    # Both strings were already handled above.
+                    if left == "String":
+                        self.require(left, "Int", expr.left)
+                    else:
+                        self.require(right, "Int", expr.right)
                 if ordering:
                     return "Bool"
                 if left == ANY or right == ANY:

@@ -210,8 +210,8 @@ class MapsAndJSONTests(unittest.TestCase):
     def test_json_reject_duplicate(self):
         self.runtime_failure(src(r'json_parse("{\"x\":1,\"x\":2}")'), "Duplicate map key")
 
-    def test_json_reject_float(self):
-        self.runtime_failure(src('json_parse("1.5")'), "fractional JSON numbers")
+    def test_json_accept_float(self):
+        self.both(src('println(json_parse("1.5"))'), "1.5\\n")
 
     def test_json_reject_nan(self):
         self.runtime_failure(src('json_parse("NaN")'), "nonstandard numeric constant")
