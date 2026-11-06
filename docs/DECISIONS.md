@@ -1,20 +1,24 @@
 # Samhus design decision log
 
-This file distinguishes **confirmed user decisions** from **reversible prototype choices**.
+Only owner-approved decisions are final. Technical prototypes are reversible.
 
 | Topic | Status | Detail |
 | --- | --- | --- |
-| Language name | **Confirmed** | Samhus (selected by project owner). |
-| Repository | **Confirmed** | SamandarAlimov/samhus. |
-| Source extension | **Pending confirmation** | .sahu proposed and used by the prototype for practical testing. |
-| Bootstrap interpreter | **Experimental** | Minimal Python standard-library interpreter, easy to replace. |
-| Syntax | **Experimental** | fn, let/var, if/else, while, return, expression calls, recursion and println; see LANGUAGE.md. |
-| Runtime limits | **Experimental** | Interpreter step and call depth ceilings, not a security sandbox. |
-| Compiler implementation | **Undecided** | Rust, other languages, and LLVM/Wasm backends require technical evaluation. |
-| License | **Undecided** | No LICENSE file; public repository does not automatically grant open-source rights. |
-| Memory model | **Undecided** | No approved GC, ownership or manual memory model. |
-| Static type system | **Undecided** | No type annotations or static checker in this prototype. |
-| Platforms | **Undecided** | Future targets must be prioritized and specified. |
+| Programming language name | Confirmed | Samhus, selected by project owner. |
+| Repository | Confirmed | SamandarAlimov/samhus. |
+| Source extension | Pending confirmation | .sahu is proposed and used for experiments. |
+| Prototype implementation | Experimental | Python standard-library interpreter. |
+| Syntax | Experimental | fn, let/var, if/else, while, return, calls and primitive expressions. |
+| Optional type annotations | Experimental | Int, String, Bool, Unit, Any; runtime guards and opt-in typecheck. |
+| Static type system | Undecided | Current checker is a conservative prototype only. |
+| Formatting conventions | Experimental | AST formatter; does not preserve comments. |
+| Runtime limits | Experimental | Step/call depth ceilings; not a sandbox. |
+| Compiler implementation language | Undecided | Python bootstrap does not decide final compiler technology. |
+| LLVM/Wasm/native targets | Undecided | No selected backend architecture. |
+| License and open-source policy | Undecided | No LICENSE file; public repo is not automatically open-source. |
+| Memory model | Undecided | No approved GC, ownership or manual memory model. |
+| Platform priorities | Undecided | Require explicit prioritization. |
 
-To confirm decisions, document the founder's explicit choice, date, rationale, and any impact on compatibility.
-Prototypes must never silently promote an experimental choice to a permanent requirement.
+To confirm a decision, record the founder's explicit choice, the date,
+the rationale, and any compatibility impact. Do not silently promote
+prototype behavior into a permanent specification.

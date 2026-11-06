@@ -1,36 +1,39 @@
-# Samhus research roadmap (proposed, not committed)
+# Samhus engineering roadmap (proposed, not a release commitment)
 
-## Milestone 0 — executable bootstrap: complete
+## Milestone A — executable bootstrap: complete
 
-Lexer, parser, evaluator, CLI, examples, tests and GitHub Actions.
-Current interpreter is experimental and intentionally narrow.
+- Lexer, source-positioned diagnostics, parser, AST and interpreter.
+- Variables, basic expressions, control flow, functions, recursion and scopes.
+- CLI, execution budgets, examples, CI and regression suite.
 
-## Milestone 1 — language design review: pending
+## Milestone B — developer foundation: experimental prototype complete
 
-- Define the specific real-world problem that Samhus must solve.
-- Compare proposed grammar, ownership and types with existing languages.
-- Obtain explicit owner decisions for the .sahu extension and licensing.
-- Draft a stable, testable conformance specification before 1.0 claims.
+- Optional type annotations on variables and function signatures.
+- Opt-in static type checking with documented limitations.
+- Runtime type validation for explicit annotations.
+- JSON AST inspection and deterministic source formatter.
+- CLI integration, compatibility coverage and GitHub CI.
 
-## Milestone 2 — stronger semantics: partially prototyped
+## Milestone C — robust language core: not started
 
-- [x] Multiple functions, parameters and return expressions.
-- [x] Local lexical scopes, recursion and while loops.
-- [x] Execution budget and call-depth diagnostics.
-- [ ] Decide and prototype a static type system.
-- [ ] Add user-defined data structures and modules.
-- [ ] Build deterministic semantics and compatibility tests.
-- [ ] Evaluate error recovery and source spans for tooling.
+- Decide language's real first user problem and define approved semantics.
+- Improve static analysis and control-flow inference.
+- Explore data structures, modules, error handling and standard library.
+- Introduce intermediate representation, diagnostics and conformance
+  cases after review.
 
-## Milestone 3 — compilation experiments: not started
+## Milestone D — compiler backend research: not started
 
-Benchmark interpreter vs bytecode, WebAssembly and native compilation.
-Evaluate LLVM integration, ABI/runtime costs and cross-platform feasibility,
-and select architecture only after technical evidence and owner approval.
+- Compare typed IR, bytecode VM, Wasm and LLVM native backends.
+- Benchmark real programs and choose architecture after owner approval.
+- Validate memory model, ABI, interoperability and portability.
 
-## Milestone 4 — developer experience: not started
+## Milestone E — developer ecosystem: not started
 
-Propose formatter, LSP, package manager, project templates, documentation,
-security review and pilot Alsamos SDK integrations.
+- Explore package manager, LSP/IDE integration, formatter with comment
+  preservation, debugger, release management and security audits.
+- Evaluate prototypes with actual Alsamos Mini Apps / Cloud needs.
 
-Dates, budgets, production-readiness and future platform targets are **not** approved by this roadmap.
+Open founder decisions: .sahu extension, licensing/open-source model,
+production type semantics, compiler architecture, target platforms and
+investment/release schedule. No date or budget is committed here.

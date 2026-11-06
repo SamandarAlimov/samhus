@@ -1,94 +1,99 @@
-# Samhus language draft — experimental 0.0.2
+# Samhus language reference — experimental 0.0.3
 
-These notes describe only the **currently implemented interpreter**.
-They are not a founder-approved, stable language specification.
+This is **observed prototype behavior**, not a finalized language standard.
 
-## Grammar sketch
+## Grammar (informal)
 
 ~~~text
-program      = function* EOF
-function     = "fn" IDENT "(" (IDENT ("," IDENT)*)? ")" block
-block        = "{" statement* "}"
-statement    = ("let" | "var") IDENT "=" expression ";"?
-             | IDENT "=" expression ";"?
-             | expression-call ";"?
-             | "return" expression ";"?
-             | "if" expression block ("else" block)?
-             | "while" expression block
-expression   = literals, names, function calls, unary and binary operations
+program        := function*
+function       := "fn" NAME "(" parameters? ")" ("->" type)? block
+parameters     := parameter ("," parameter)*
+parameter      := NAME (":" type)?
+type           := Int | String | Bool | Unit | Any
+block          := "{" statement* "}"
+statement      := ("let" | "var") NAME (":" type)? "=" expression ";"?
+                | NAME "=" expression ";"?
+                | call_expression ";"?
+                | "return" expression ";"?
+                | "if" expression block ("else" block)?
+                | "while" expression block
+expression     := literals | variables | unary | binary | calls | "(" expression ")"
 ~~~
 
-Top-level declarations are functions only. A parameterless fn main() is mandatory,
-and function names must be unique. The builtin function println(value) cannot
-be redefined. A function without an explicit return produces an internal
-no-value result. Return works from inside if and while.
+Type names are case sensitive. The return type uses the arrow ->.
+Parameter, variable, and function return annotations are optional.
+The entrypoint fn main() must exist and must take zero arguments.
 
-Semicolons are optional; line breaks alone do not delimit statements. Comments
-begin with // and continue to the end of the line.
+Semicolons are optional; comments start with // outside string literals.
+The language currently accepts no top-level variables, modules or classes.
 
 ## Example
 
 ~~~text
-fn square(value) {
-    return value * value
+fn add(a: Int, b: Int) -> Int {
+    return a + b
 }
 
-fn main() {
-    let name = "Alsamos"
-    var count = 0
-    while count < 3 {
-        if count == 2 {
-            println(name + "!")
-        } else {
-            println(square(count))
-        }
-        count = count + 1
+fn main() -> Unit {
+    let name: String = "Samhus"
+    var total: Int = 0
+    while total < 3 {
+        total = total + 1
     }
+    println(name)
+    println(add(total, 39))
 }
 ~~~
 
-## Values, operators and behavior
+Output: Samhus and 42, each on a separate line.
 
-- Int: arbitrary-precision signed integers; integer division truncates toward zero.
-- String: double quoted with escaped quote, slash, newline, carriage return, and tab.
+## Primitive types
+
+- Int: arbitrary precision signed integer; / truncates toward zero.
+- String: double-quoted Unicode string, with escaped newline, carriage return,
+  tab, double quote and backslash.
 - Bool: true and false.
-- Arithmetic: +, -, *, / on integers; + also concatenates two strings.
-- Ordering: < <= > >= for integers.
-- Equality: == != considers values equal only when their types match.
-- Logical: !, &&, || on booleans. Both binary logical operators short-circuit.
-- Precedence, high to low: unary; multiplication/division; addition/subtraction;
-  ordering; equality; &&; ||.
-- Function arguments are evaluated left to right; wrong arity is a runtime error.
-- let declares an immutable variable; var declares a mutable variable.
-- Parameters are immutable. Nested blocks have their own lexical scopes.
-- Each function invocation has an independent local scope; caller locals
-  are not visible to the called function (no closures or global variables).
-- If/while conditions must be booleans, not integers.
-- A while body has a new block scope per iteration.
-- Calls support forward references and recursion. Evaluation has an internal
-  call-depth limit, and a global execution-step budget.
+- Unit: the no-value result of println or a function without return.
+  There is no Unit literal at present.
+- Any: dynamic type marker accepted by the optional type checker.
 
-## APIs and diagnostics
+The boolean true is not an Int; numeric operators reject booleans at runtime.
 
-~~~bash
-python -m samhus run examples/functions.sahu
-python -m samhus run examples/functions.sahu --max-steps 1000
-python -m samhus check examples/functions.sahu
-~~~
+## Operators
 
-check performs **syntactic parsing only**; it does not prove types or safe execution.
-Runtime or parse errors contain line and column numbers.
+- Unary: -, !
+- Multiplicative: *, /
+- Additive: +, -; + also joins two strings.
+- Ordering: <, <=, >, >= on integers.
+- Equality: ==, != (different runtime types compare unequal).
+- Boolean short-circuit operators: &&, ||.
+- Parentheses alter precedence.
 
-The Python API parse(source) is kept for backwards compatibility and returns
-the entry function's body after parsing all definitions; parse_program(source)
-returns the full Program with all function declarations.
+## Functions and scopes
 
-## Not implemented
+- Functions can be defined before or after main.
+- Function calls evaluate arguments left-to-right.
+- Parameters are immutable local bindings, and functions cannot access
+  the caller's local variables.
+- let cannot be reassigned; var can. Typed variables are runtime-checked
+  on declarations and assignments.
+- Each block creates a lexical scope; while bodies create one per iteration.
+- Explicit annotated function arguments and returns are runtime checked.
+- Return without an expression is not yet supported.
 
-Static types, type annotations, overloaded functions, modules, imports,
-user-defined data types, arrays, dictionaries, floats, async/await, filesystem,
-network access, native compiler, LLVM/Wasm, package registry and IDE tooling.
+## Compiler and checks
 
-**Security:** bounded steps and calls are *not* a general resource or security
-sandbox. Large integers, deep expressions or host runtime behavior can still
-consume resources. Only run trusted test programs.
+This project is currently a tree-walking Python interpreter, not a native
+compiler. The check command validates syntax only; typecheck runs an additional
+experimental semantic analysis. Run --typecheck enables both analysis and
+execution; run without the flag still enforces explicit runtime type annotations.
+See [STATIC_TYPES](STATIC_TYPES.md) for limitations.
+
+For low-level inspection: python -m samhus ast examples/typed.sahu.
+For canonical formatting: python -m samhus fmt examples/typed.sahu.
+
+## Safety
+
+Execution-step and recursion depth checks exist for educational experiments,
+but cannot prevent all resource exhaustion and are not a security sandbox.
+Never execute untrusted source code with this interpreter.
