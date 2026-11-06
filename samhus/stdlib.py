@@ -41,8 +41,9 @@ def call_builtin(name: str, args: tuple[Any, ...], token: Token, output: TextIO)
         raise KeyError(name)
     expected_types, _return_type = signature
     if len(args) != len(expected_types):
+        plural = "argument" if len(expected_types) == 1 else "arguments"
         raise SamhusError(
-            f"{name} expects {len(expected_types)} argument, got {len(args)}",
+            f"{name} expects {len(expected_types)} {plural}, got {len(args)}",
             token.line, token.column,
         )
     for value, required in zip(args, expected_types):

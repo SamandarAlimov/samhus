@@ -50,14 +50,14 @@ class TypeChecker:
             self.fail(node, f"Type mismatch: expected {expected}, got {actual}")
 
     def require_expr(self, expr: Expr, expected: Type) -> Type:
-        actual = self.expr_type(expr)
-        self.require(actual, expected, expr)
-        # The general List[Any] inference must not hide mismatches when the
-        # destination's element type is concrete and literals are visible.
+        # Inspect literals recursively before checking the aggregate:
+        # the diagnostic now points to the mismatched item, not its container.
         inner = element_type(expected)
         if inner is not None and expr.kind == "list":
             for item in expr.args:
                 self.require_expr(item, inner)
+        actual = self.expr_type(expr)
+        self.require(actual, expected, expr)
         return actual
 
     def expr_type(self, expr: Expr) -> Type:

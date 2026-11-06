@@ -94,7 +94,7 @@ class ListLanguageTests(unittest.TestCase):
         self.same(wrap("let x: List[List[Int]] = append([[1]], [2]); println(x[1][0])"), "2\n")
 
     def test_append_dynamic(self):
-        self.same(wrap("let x: List[Any] = append([1], \"hello\"); println(len(x))"), "2\n")
+        self.same(wrap("let base: List[Any] = [1]; let x: List[Any] = append(base, \"hello\"); println(len(x))"), "2\n")
 
     def test_append_not_list(self):
         self.error(wrap("println(append(1,2))"), "append expects List")
