@@ -8,7 +8,8 @@ fn apply_tax(price: Decimal, tax: Decimal) -> Decimal {
 fn main() -> Unit {
     let price: Decimal = decimal("19.99")
     let tax: Decimal = decimal("0.10")
-    let total: Decimal = apply_tax(price, tax)
+    let total_unrounded: Decimal = apply_tax(price, tax)
+    let total: Decimal = decimal_round(total_unrounded, 2, "half_up")
 
     let parsed: Result[Any] = try_json_parse("{\"status\":\"ok\",\"qty\":2}")
     if result_is_ok(parsed) {

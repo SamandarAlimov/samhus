@@ -116,6 +116,49 @@ class DecimalAndResultTests(unittest.TestCase):
     def test_decimal_wrong_assignment(self):
         self.static_error(program("let amount: Decimal=1.25"), "expected Decimal, got Float")
 
+    def test_decimal_round_half_even(self):
+        self.both(program('println(decimal_round(decimal("1.245"),2,"half_even"));'
+                          'println(decimal_round(decimal("1.255"),2,"half_even"))'),
+                  "1.24\n1.26\n")
+
+    def test_decimal_round_half_up(self):
+        self.both(program('println(decimal_round(decimal("1.245"),2,"half_up"))'), "1.25\n")
+
+    def test_decimal_round_down(self):
+        self.both(program('println(decimal_round(decimal("-1.259"),2,"down"))'), "-1.25\n")
+
+    def test_decimal_round_preserves_scale(self):
+        self.both(program('println(decimal_round(decimal("1"),2,"half_up"))'), "1.00\n")
+
+    def test_decimal_div_repeating_explicit(self):
+        self.both(program('println(decimal_div(decimal("1"),decimal("3"),2,"half_up"))'), "0.33\n")
+
+    def test_decimal_div_non_repeating_explicit(self):
+        self.both(program('println(decimal_div(decimal("1"),decimal("4"),2,"half_even"))'), "0.25\n")
+
+    def test_decimal_round_bad_mode(self):
+        self.runtime_error(program('decimal_round(decimal("1.2"),2,"up")'), "rounding mode")
+
+    def test_decimal_round_bad_scale(self):
+        self.runtime_error(program('decimal_round(decimal("1.2"),-1,"half_even")'), "scale must be Int")
+        self.runtime_error(program('decimal_round(decimal("1.2"),19,"half_even")'), "scale must be Int")
+
+    def test_decimal_div_by_zero_explicit(self):
+        self.runtime_error(program('decimal_div(decimal("1"),decimal("0"),2,"half_up")'), "Division by zero")
+
+    def test_decimal_round_bad_type_static(self):
+        self.static_error(program('decimal_round(1.25,2,"half_up")'), "expected Decimal, got Float")
+
+    def test_decimal_round_bad_type_runtime(self):
+        self.runtime_error(program('decimal_round(1.25,2,"half_up")'), "expected Decimal, got Float")
+
+    def test_decimal_input_no_underscore(self):
+        self.runtime_error(program('decimal("1_000")'), "Invalid Decimal literal")
+
+    def test_decimal_large_negate_exact(self):
+        number="1234567890123456789012345678901234567890.55"
+        self.both(program(f'println(-decimal("{number}"))'), "-" + number + "\n")
+
     def test_decimal_typed_function(self):
         self.both(
             'fn tax(amount: Decimal) -> Decimal {return amount * decimal("0.10")}\n'

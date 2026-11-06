@@ -11,7 +11,7 @@ from .errors import SamhusError
 from .lexer import Token
 from .values import MAX_LIST_ITEMS, MAX_MAP_ITEMS, MapValue, NullValue, ResultValue, map_value, show, type_name as value_type_name
 from .numbers import as_float, numeric
-from .decimal_core import make_decimal
+from .decimal_core import make_decimal, decimal_round, decimal_div
 from .json_bridge import decode_json, encode_json
 
 # One primitive signature per function. Keep signatures and execution in sync.
@@ -25,6 +25,8 @@ BUILTIN_SIGNATURES: dict[str, tuple[tuple[str, ...], str]] = {
     "is_null": (("Any",), "Bool"),
     "to_float": (("Any",), "Float"),
     "decimal": (("Any",), "Decimal"),
+    "decimal_round": (("Decimal", "Int", "String"), "Decimal"),
+    "decimal_div": (("Decimal", "Decimal", "Int", "String"), "Decimal"),
     "result_ok": (("Any",), "Result[Any]"),
     "result_err": (("String",), "Result[Any]"),
     "result_is_ok": (("Any",), "Bool"),
@@ -76,6 +78,10 @@ def call_builtin(name: str, args: tuple[Any, ...], token: Token, output: TextIO)
         return type(value) is NullValue
     if name == "decimal":
         return make_decimal(value, token)
+    if name == "decimal_round":
+        return decimal_round(value, args[1], args[2], token)
+    if name == "decimal_div":
+        return decimal_div(value, args[1], args[2], args[3], token)
     if name == "result_ok":
         return ResultValue(True, value)
     if name == "result_err":
