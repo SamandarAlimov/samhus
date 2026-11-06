@@ -1,9 +1,20 @@
-"""Simple JSON AST inspection for tooling and debugging (experimental)."""
-from dataclasses import asdict
+"""JSON AST output for tooling; supports explicit Null literal serialization."""
+from dataclasses import fields, is_dataclass
 import json
 
 from .parser import parse_program
+from .values import NULL
+
+
+def _serialize(value):
+    if value is NULL:
+        return None
+    if is_dataclass(value):
+        return {field.name: _serialize(getattr(value, field.name)) for field in fields(value)}
+    if isinstance(value, (tuple, list)):
+        return [_serialize(item) for item in value]
+    return value
 
 
 def dump_ast(source: str) -> str:
-    return json.dumps(asdict(parse_program(source)), indent=2, ensure_ascii=False)
+    return json.dumps(_serialize(parse_program(source)), indent=2, ensure_ascii=False, allow_nan=False)

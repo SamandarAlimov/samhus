@@ -1,0 +1,21 @@
+// Samhus experimental Float + distinct Null types for AI responses.
+// Finite binary64 Float is NOT appropriate for precise currency accounting.
+
+fn average(values: List[Float]) -> Float {
+    var total: Float = 0.0
+    var index: Int = 0
+    while index < len(values) {
+        total = total + values[index]
+        index = index + 1
+    }
+    return total / to_float(len(values))
+}
+
+fn main() -> Unit {
+    let payload: String = "{\"scores\":[1.25,2.5,3.75],\"description\":null}"
+    let data = json_parse(payload)
+    let scores: List[Float] = data["scores"]
+    println(average(scores))
+    println(is_null(data["description"]))
+    println(json_encode(data))
+}
