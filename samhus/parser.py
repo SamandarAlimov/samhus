@@ -1,10 +1,12 @@
 """Recursive-descent parser; this grammar is still experimental."""
 from dataclasses import dataclass
+import math
 from typing import Any
 
 from .errors import SamhusError
 from .lexer import Token, lex
 from .stdlib import BUILTIN_SIGNATURES
+from .values import NULL
 
 
 @dataclass(frozen=True)
@@ -44,7 +46,7 @@ class Program:
     functions: tuple[Function, ...]
 
 
-TYPE_NAMES = frozenset({"Int", "String", "Bool", "Unit", "Any", "List", "Map"})
+TYPE_NAMES = frozenset({"Int", "Float", "String", "Bool", "Null", "Unit", "Any", "List", "Map"})
 
 
 PRECEDENCE = {
@@ -182,6 +184,16 @@ class Parser:
             left = Expr("unary", token, token.kind, right=self.expression(7))
         elif self.accept("NUMBER"):
             left = Expr("literal", token, int(token.text))
+        elif self.accept("FLOAT"):
+            try:
+                value = float(token.text)
+            except OverflowError:
+                raise SamhusError("Float literal out of range", token.line, token.column) from None
+            if not math.isfinite(value):
+                raise SamhusError("Float literal out of range", token.line, token.column)
+            left = Expr("literal", token, value)
+        elif self.accept("null"):
+            left = Expr("literal", token, NULL)
         elif self.accept("STRING"):
             left = Expr("literal", token, token.text)
         elif self.accept("true"):

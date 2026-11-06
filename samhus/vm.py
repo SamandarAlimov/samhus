@@ -14,6 +14,7 @@ from .lexer import Token
 from .runtime import Binding, Value, value_type
 from .stdlib import BUILTIN_SIGNATURES, call_builtin
 from .values import accepts, build_list, index_of, map_value, structural_equal
+from .numbers import arithmetic, negate
 
 
 @dataclass
@@ -58,38 +59,13 @@ class VirtualMachine:
             if type(right) is not bool:
                 self.error(token, "'!' requires a boolean")
             return not right
-        if type(right) is not int:
-            self.error(token, "Unary '-' requires an integer")
-        return -right
+        return negate(right, token)
 
     def binary(self, op: str, left: Value, right: Value, token: Token) -> Value:
         if op in {"==", "!="}:
             eq = structural_equal(left, right)
             return eq if op == "==" else not eq
-        if op == "+" and type(left) is str and type(right) is str:
-            return left + right
-        if type(left) is not int or type(right) is not int:
-            self.error(token, f"'{op}' requires integers (or two strings for '+')")
-        if op == "+":
-            return left + right
-        if op == "-":
-            return left - right
-        if op == "*":
-            return left * right
-        if op == "/":
-            if right == 0:
-                self.error(token, "Division by zero")
-            quotient = abs(left) // abs(right)
-            return -quotient if (left < 0) != (right < 0) else quotient
-        if op == "<":
-            return left < right
-        if op == "<=":
-            return left <= right
-        if op == ">":
-            return left > right
-        if op == ">=":
-            return left >= right
-        raise AssertionError(f"Unsupported compiled operator: {op}")
+        return arithmetic(op, left, right, token)
 
     def invoke(self, name: str, args: tuple[Value, ...], token: Token) -> Value:
         self.tick(token)

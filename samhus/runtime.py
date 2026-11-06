@@ -8,10 +8,11 @@ from .errors import SamhusError
 from .lexer import Token
 from .parser import Expr, Function, Program, Stmt, parse_program
 from .stdlib import BUILTIN_SIGNATURES, call_builtin
-from .values import accepts, build_list, index_of, map_value, structural_equal, type_name, MapValue
+from .values import accepts, build_list, index_of, map_value, structural_equal, type_name, MapValue, NullValue
+from .numbers import arithmetic, negate
 
 
-Value = int | str | bool | None | tuple | MapValue
+Value = int | float | str | bool | None | NullValue | tuple | MapValue
 
 
 @dataclass
@@ -116,9 +117,7 @@ class Interpreter:
                 if type(right) is not bool:
                     self.error(expr, "'!' requires a boolean")
                 return not right
-            if type(right) is not int:
-                self.error(expr, "Unary '-' requires an integer")
-            return -right
+            return negate(right, expr.token)
         if expr.kind == "binary":
             left = self.evaluate(expr.left)
             operator = expr.value
@@ -137,29 +136,7 @@ class Interpreter:
             if operator in {"==", "!="}:
                 equals = structural_equal(left, right)
                 return equals if operator == "==" else not equals
-            if operator == "+" and type(left) is str and type(right) is str:
-                return left + right
-            if type(left) is not int or type(right) is not int:
-                self.error(expr, f"'{operator}' requires integers (or two strings for '+')")
-            if operator == "+":
-                return left + right
-            if operator == "-":
-                return left - right
-            if operator == "*":
-                return left * right
-            if operator == "/":
-                if right == 0:
-                    self.error(expr, "Division by zero")
-                quotient = abs(left) // abs(right)
-                return -quotient if (left < 0) != (right < 0) else quotient
-            if operator == "<":
-                return left < right
-            if operator == "<=":
-                return left <= right
-            if operator == ">":
-                return left > right
-            if operator == ">=":
-                return left >= right
+            return arithmetic(operator, left, right, expr.token)
         self.error(expr, "Unsupported expression")
         raise AssertionError("unreachable")
 

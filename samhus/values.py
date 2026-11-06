@@ -16,6 +16,14 @@ MAX_MAP_ITEMS = 100_000
 
 
 @dataclass(frozen=True)
+class NullValue:
+    """Explicit null, distinct from Unit/None. Temporary prototype semantics."""
+
+
+NULL = NullValue()
+
+
+@dataclass(frozen=True)
 class MapValue:
     """Internal immutable string-key map, insertion order preserved."""
     entries: tuple[tuple[str, Any], ...]
@@ -53,6 +61,10 @@ def type_name(value: Any) -> str:
         return "Bool"
     if type(value) is int:
         return "Int"
+    if type(value) is float:
+        return "Float"
+    if type(value) is NullValue:
+        return "Null"
     if type(value) is str:
         return "String"
     if value is None:
@@ -111,6 +123,8 @@ def show(value: Any) -> str:
         return "true" if value else "false"
     if value is None:
         return "unit"
+    if type(value) is NullValue:
+        return "null"
     if type(value) is tuple:
         return "[" + ", ".join(json.dumps(x, ensure_ascii=False) if type(x) is str else show(x) for x in value) + "]"
     if type(value) is MapValue:

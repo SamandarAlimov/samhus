@@ -12,7 +12,7 @@ class Token:
     column: int
 
 
-KEYWORDS = {"fn", "let", "var", "if", "else", "while", "return", "true", "false"}
+KEYWORDS = {"fn", "let", "var", "if", "else", "while", "return", "true", "false", "null"}
 TWO_CHAR = {"==", "!=", "<=", ">=", "&&", "||", "->"}
 ONE_CHAR = set("+-*/=(){}[];!<>,:")
 ESCAPES = {"n": "\n", "t": "\t", "r": "\r", '"': '"', "\\": "\\"}
@@ -53,7 +53,24 @@ def lex(source: str) -> list[Token]:
             value = ""
             while index < len(source) and source[index].isascii() and source[index].isdigit():
                 value += step()
-            tokens.append(Token("NUMBER", value, start_line, start_column))
+            fractional = False
+            if index < len(source) and source[index] == ".":
+                if index + 1 >= len(source) or not source[index + 1].isascii() or not source[index + 1].isdigit():
+                    raise SamhusError("Float literal requires digits after decimal point", line, column)
+                fractional = True
+                value += step()
+                while index < len(source) and source[index].isascii() and source[index].isdigit():
+                    value += step()
+            if index < len(source) and source[index] in "eE":
+                fractional = True
+                value += step()
+                if index < len(source) and source[index] in "+-":
+                    value += step()
+                if index >= len(source) or not source[index].isascii() or not source[index].isdigit():
+                    raise SamhusError("Float exponent requires digits", line, column)
+                while index < len(source) and source[index].isascii() and source[index].isdigit():
+                    value += step()
+            tokens.append(Token("FLOAT" if fractional else "NUMBER", value, start_line, start_column))
             continue
         if char == '"':
             step()

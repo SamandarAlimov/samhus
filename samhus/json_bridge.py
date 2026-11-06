@@ -1,15 +1,16 @@
 """Strict experimental JSON bridge into Samhus immutable Map/List values.
 
-No Float type exists in this prototype, so fractional JSON numbers are
-rejected, rather than silently converted into imprecise values. JSON null
-currently maps to Unit (None) solely for this experimental bridge.
+Float is experimental finite binary64, NOT precise decimal currency.
+JSON null maps to a distinct Null value. Legacy Unit->JSON null encoding
+remains supported for backwards compatibility but is not recommended.
 """
 import json
+import math
 from typing import Any
 
 from .errors import SamhusError
 from .lexer import Token
-from .values import MAX_LIST_ITEMS, MAX_MAP_ITEMS, MapValue, map_value
+from .values import MAX_LIST_ITEMS, MAX_MAP_ITEMS, MapValue, NULL, NullValue, map_value
 
 MAX_JSON_BYTES = 1_000_000
 MAX_JSON_DEPTH = 64
@@ -20,8 +21,11 @@ def _invalid_constant(value: str) -> None:
     raise ValueError("nonstandard numeric constant " + value)
 
 
-def _reject_float(value: str) -> None:
-    raise ValueError("fractional JSON numbers require Float (not implemented)")
+def _parse_float(value: str) -> float:
+    result = float(value)
+    if not math.isfinite(result):
+        raise ValueError("non-finite Float literal")
+    return result
 
 
 def decode_json(source: str, token: Token) -> Any:
@@ -36,7 +40,7 @@ def decode_json(source: str, token: Token) -> Any:
     try:
         raw = json.loads(
             source, object_pairs_hook=object_pairs,
-            parse_float=_reject_float, parse_constant=_invalid_constant,
+            parse_float=_parse_float, parse_constant=_invalid_constant,
         )
         # Lists decoded by json.loads are Python lists (not Samhus tuples).
         def freeze(value: Any, depth: int, count: list[int]) -> Any:
@@ -52,6 +56,8 @@ def decode_json(source: str, token: Token) -> Any:
                     raise SamhusError("JSON object exceeds Map size limit", token.line, token.column)
                 return MapValue(tuple((freeze(k, depth + 1, count), freeze(v, depth + 1, count))
                                       for k, v in value.entries))
+            if value is None:
+                return NULL
             if type(value) is str:
                 try:
                     value.encode("utf-8")
@@ -78,6 +84,12 @@ def encode_json(value: Any, token: Token) -> str:
                 item.encode("utf-8")
             except UnicodeEncodeError:
                 raise SamhusError("JSON serialization: unpaired Unicode surrogate", token.line, token.column) from None
+            return item
+        if type(item) is NullValue:
+            return None
+        if type(item) is float:
+            if not math.isfinite(item):
+                raise SamhusError("Non-finite Float cannot be encoded as JSON", token.line, token.column)
             return item
         if item is None or type(item) in (int, bool):
             return item

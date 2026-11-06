@@ -6,6 +6,7 @@ some optional parentheses are not preserved; use '--write' only deliberately.
 import json
 
 from .parser import Expr, Program, Stmt, parse_program
+from .values import NULL
 
 
 def _expr(node: Expr) -> str:
@@ -14,6 +15,8 @@ def _expr(node: Expr) -> str:
             return json.dumps(node.value, ensure_ascii=False)
         if type(node.value) is bool:
             return "true" if node.value else "false"
+        if node.value is NULL:
+            return "null"
         return str(node.value)
     if node.kind == "name":
         return node.value
