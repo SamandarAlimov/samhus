@@ -1,0 +1,21 @@
+// Experimental Samhus Decimal and Result: explicit, safe data workflows.
+// Decimal uses exact bounded arithmetic; nonterminating divisions fail.
+
+fn apply_tax(price: Decimal, tax: Decimal) -> Decimal {
+    return price + price * tax
+}
+
+fn main() -> Unit {
+    let price: Decimal = decimal("19.99")
+    let tax: Decimal = decimal("0.10")
+    let total: Decimal = apply_tax(price, tax)
+
+    let parsed: Result[Any] = try_json_parse("{\"status\":\"ok\",\"qty\":2}")
+    if result_is_ok(parsed) {
+        println(result_value(parsed)["status"])
+    } else {
+        println(result_error(parsed))
+    }
+    println(total)
+    println(result_or(result_err("offline"), "fallback"))
+}
