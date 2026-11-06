@@ -1,0 +1,19 @@
+// Native C backend research example: explicit types, checked Int64.
+fn fibonacci(n: Int) -> Int {
+    if n <= 1 {
+        return n
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2)
+}
+
+fn main() -> Unit {
+    let language: String = "Samhus"
+    println(language)
+    println(fibonacci(10))
+    var i: Int = 0
+    while i < 3 {
+        println(i)
+        i = i + 1
+    }
+    assert(i == 3)
+}
