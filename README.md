@@ -1,7 +1,7 @@
 # Samhus — Alsamos programming-language research project
 
 **Samhus** is Alsamos's founder-approved programming-language name.
-The current software is **prototype 0.0.10**, not a production-ready language
+The current software is **unreleased research snapshot (`0.0.0.dev0`)**, not a production-ready language
 or an implementation comparable in completeness to C++ or Python 3.13.
 
 A restricted third path can now produce standalone native C11 executables via a system C compiler. The compiler itself still needs Python and this does not support the full Samhus grammar.
@@ -16,6 +16,16 @@ Two Python-hosted execution paths remain available for the experimental grammar:
 Both use Python as their host. The VM is **not native compilation**, and the
 language still needs modules, collections, a production type specification,
 an extensive standard library, native/Wasm backends, tooling and hardening.
+
+## No release version yet
+
+The `0.0.0.dev0` identifier is an **internal Python packaging placeholder**,
+not the version of a complete Samhus language or a publicly released product.
+Historical `0.0.1` through `0.0.10` labels below refer to previous
+**research commits only**, not approved releases. We do **not** increment
+the package/language version for every added feature. The first `0.0.1`
+tag is reserved until the gates in [Release policy](docs/RELEASE_POLICY.md)
+are verified and authorized. The existing Git history is preserved.
 
 ## Install and try
 
@@ -39,7 +49,7 @@ python -m samhus run examples/hello.sahu --backend vm
 python -m samhus run examples/typed.sahu --backend tree --typecheck
 ~~~
 
-There is **no PyPI package publication or official 0.9.9 release**.
+There is **no official Samhus release**, including 0.0.1 or 0.9.9.
 The local package name is samhus-prototype to distinguish these experiments
 from any future official distribution.
 
@@ -55,7 +65,7 @@ The accepted implementation approach is still undecided.
 Read [Product requirements](docs/PRODUCT_REQUIREMENTS.md) and
 [Quality / 0.9.9 evidence gates](docs/QUALITY_GATES.md).
 
-## Experimental AI/safety building blocks (0.0.5)
+## Experimental AI/safety building blocks (historical research)
 
 The tree interpreter and bytecode VM now both support typed builtins:
 assert(Bool), len(String), str(Any) and json_valid(String).
@@ -92,7 +102,7 @@ Alsamos
 
 ## Experimental native executable backend
 
-New in 0.0.6: a strictly annotated subset of Samhus is compiled to C11 and then
+Research snapshot: a strictly annotated subset of Samhus is compiled to C11 and then
 to a standalone executable using cc/gcc/clang. The output does not need
 Python to run. The Samhus compiler itself still needs Python at build time.
 
@@ -183,7 +193,7 @@ reversible research choices, not founder-approved production commitments.
 No other Alsamos repository, Superapp or production backend was changed.
 
 
-## Experimental immutable List support (0.0.7)
+## Experimental immutable List support (research)
 
 Samhus now supports nested List[T] annotations, immutable collection
 literals, bounds-checked zero-based indexing, len(List) and append(List, value)
@@ -227,7 +237,7 @@ Native C11 does not support Maps or JSON; this is not production AI tooling.
 See [Map and JSON limitations](docs/MAPS_JSON.md). This syntax and the
 .sahu suffix remain provisional.
 
-## Finite Float and explicit Null (experimental 0.0.9)
+## Finite Float and explicit Null (experimental)
 
 The tree interpreter and bytecode VM support finite binary64 Float,
 numeric Int/Float operations, to_float, and separate Null/is_null.
@@ -240,7 +250,7 @@ Native C11 remains limited and rejects these new types.
 
 See [Float and Null experimental semantics](docs/FLOAT_NULL.md).
 
-## Exact Decimal and Result[T] experiments (0.0.10)
+## Exact Decimal and Result[T] experiments
 
 Decimal supports bounded exact base-10 arithmetic from String/Int,
 with explicit decimal_round and decimal_div scale/mode; Float conversion

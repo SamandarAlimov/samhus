@@ -3,6 +3,13 @@
 A version label (including proposed 0.9.9) cannot substitute for evidence.
 A release is allowed to claim only what it has actually demonstrated.
 
+## First release 0.0.1 gate (NOT satisfied yet)
+
+The owner explicitly rejected earlier 0.0.1–0.0.10 prototype labels as
+premature. The installable package remains `0.0.0.dev0` until a documented
+minimum useful language core, test evidence, and an owner-approved release.
+See RELEASE_POLICY.md. Passing unit tests alone is not enough.
+
 ## Immediate experimental CI gate (currently reachable)
 
 - Every changed file compiles/imports on all supported Python CI versions.

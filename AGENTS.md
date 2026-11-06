@@ -17,3 +17,7 @@
     Record failing examples and prevent Python host exceptions from leaking.
 13. Before claiming a stage complete, verify the latest commit CI on all
     six jobs (Ubuntu/Windows/macOS x Python 3.11/3.13).
+
+14. The bootstrap version is `0.0.0.dev0` until the owner approves
+    an official release. See docs/RELEASE_POLICY.md. Do not bump version
+    merely because functionality, tests or documentation changed.

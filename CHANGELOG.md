@@ -1,8 +1,12 @@
 # Samhus changelog
 
-Prototype iterations, not stable releases.
+**Archive of prior prototype iteration labels only.** They were not
+official Samhus releases. On 2026-11-06 the repository switched to the
+unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
+been approved or tagged. Future changes are tracked by Git commits and
+measured engineering milestones rather than incrementing a pseudo-version.
 
-## 0.0.10 — 2026-11-06 (experimental)
+## Historical research iteration 0.0.10 — 2026-11-06 (experimental)
 
 - Bounded exact Decimal and explicit rounding/division helpers.
 - Result[T] typed Ok/Err helpers and JSON parse failure capture.

@@ -96,7 +96,10 @@ Exit gate: users build and deploy useful projects without maintainer help.
 
 ## Release policy
 
-0.0.x = experiments. 0.1.x = reviewed typed core; native alpha requires
+The current installable prototype advertises only `0.0.0.dev0`.
+`0.0.1` will be the first authorized research release after meeting
+RELEASE_POLICY.md acceptance criteria. Do not auto-bump versions.
+Native alpha requires
 Python-independent runtime and reproducible compiler tests. 0.9.9 is NOT
 reserved as a shortcut to maturity: it needs all release readiness gates
 defined in QUALITY_GATES.md. Version labels do not certify security.
