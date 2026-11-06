@@ -1,9 +1,8 @@
-"""Separate experimental Value IR -> C11 backend for a *pure tiny* subset.
+"""Experimental Value IR -> C11 backend for scoped Int64/Bool programs.
 
-Supports only main()->Unit, Int64/Bool literals and arithmetic, if/else,
-boolean short-circuit PHI joins, println/assert, and controlled failure.
-Mutable variables, loops, user function calls, strings and collections are
-explicitly rejected. This does not make the full Samhus language native.
+Handles basic local variables and loops without rewriting the source AST to
+C. Only the restricted typed Int/Bool subset is compiled; this remains a
+research backend, not full language parity, formal SSA or a safe sandbox.
 """
 from .errors import SamhusError
 from .native_c import MAX_INT, PRELUDE
@@ -47,6 +46,57 @@ def _emit_edge(lines: list[str], predecessor: str, target: str, blocks) -> None:
     lines.append("    }")
 
 
+
+def _collect_locals(function, types):
+    """Resolve locals using bytecode's lexical SCOPE_IN/OUT order.
+
+    An individual source DECLARE has a unique hoisted C cell, even if the
+    variable is shadowed. Cells are overwritten on each loop iteration.
+    This deliberately does not claim mutable locals have become SSA values.
+    """
+    scopes = [{}]
+    resolved = {}
+    variables = []
+    for block in function.blocks:
+        for operation in block.operations:
+            instruction = operation.instruction
+            op, arg = instruction.op, instruction.arg
+            if op == "SCOPE_IN":
+                scopes.append({})
+            elif op == "SCOPE_OUT":
+                if len(scopes) <= 1:
+                    _fail(instruction, "scope underflow")
+                scopes.pop()
+            elif op == "DECLARE":
+                name, mutable, annotation = arg
+                if name in scopes[-1]:
+                    _fail(instruction, f"duplicate declaration {name!r}")
+                kind = annotation or types[operation.inputs[0]]
+                if kind not in {"Int", "Bool"}:
+                    _fail(instruction, f"unsupported declared type {kind!r}")
+                identifier = f"sh_local_{len(variables)}"
+                scopes[-1][name] = (identifier, kind, mutable)
+                variables.append(identifier)
+                resolved[operation.offset] = scopes[-1][name]
+            elif op in {"LOAD", "ASSIGN", "ASSERT_MUTABLE", "ASSERT_FRESH"}:
+                if op == "ASSERT_FRESH":
+                    if arg in scopes[-1]:
+                        _fail(instruction, f"duplicate declaration {arg!r}")
+                    continue
+                binding = next(
+                    (scope[arg] for scope in reversed(scopes) if arg in scope), None
+                )
+                if binding is None:
+                    _fail(instruction, f"undefined variable {arg!r}")
+                if op in {"ASSIGN", "ASSERT_MUTABLE"} and not binding[2]:
+                    _fail(instruction, f"cannot assign to immutable variable {arg!r}")
+                resolved[operation.offset] = binding
+    # A malformed CFG with partially lowered lexical scopes is rejected;
+    # approved main()->Unit programs are expected to close all scopes.
+    if len(scopes) != 1:
+        raise ValueError("Native Value IR has unbalanced lexical scopes")
+    return resolved, variables
+
 def _emit_c(value: ValueProgram) -> str:
     verify_value_ir(value)
     if len(value.functions) != 1 or value.functions[0].name != "main":
@@ -67,6 +117,7 @@ def _emit_c(value: ValueProgram) -> str:
             if op.output is not None:
                 types[op.output] = op.output_type
 
+    resolved, variables = _collect_locals(function, types)
     valid = {"Int", "Bool", "Unit"}
     for block in function.blocks:
         for phi in block.phis:
@@ -83,14 +134,24 @@ def _emit_c(value: ValueProgram) -> str:
                 "TICK", "PUSH", "POP", "UNARY", "BINARY", "CALL", "JUMP",
                 "BRANCH_FALSE", "KEEP_FALSE", "KEEP_TRUE", "EXPECT_BOOL",
                 "SCOPE_IN", "SCOPE_OUT", "RETURN_VOID",
+                "LOAD", "DECLARE", "ASSIGN", "ASSERT_MUTABLE", "ASSERT_FRESH",
             }:
                 _fail(instr, f"unsupported instruction {instr.op!r}")
 
     # Hoist all value registers, including PHI destinations, to function
     # scope so C's goto cannot jump into variable initialization.
-    lines = [PRELUDE, "static void sh_fn_main(void) {"]
+    lines = [
+        PRELUDE,
+        "static uint64_t sh_native_steps = UINT64_C(0);",
+        "static void sh_tick(void) {",
+        '    if (++sh_native_steps > UINT64_C(100000)) sh_fail("Execution step limit exceeded (100000)");',
+        "}",
+        "static void sh_fn_main(void) {",
+    ]
     for symbol in sorted(types):
         lines.append(f"    int64_t {_symbol(symbol)} = INT64_C(0);")
+    for local_name in variables:
+        lines.append(f"    int64_t {local_name} = INT64_C(0);")
     lines.append(f"    goto shb_{function.blocks[0].label};")
     for block in function.blocks:
         lines.append(f"shb_{block.label}: ;")
@@ -100,7 +161,22 @@ def _emit_c(value: ValueProgram) -> str:
             dst = _symbol(op.output) if op.output else None
             args = tuple(_symbol(item) for item in op.inputs)
             arg_types = tuple(types[item] for item in op.inputs)
-            if op_name == "PUSH":
+            if op_name == "LOAD":
+                local_name, kind, _mutable = resolved[op.offset]
+                if op.output_type != kind:
+                    _fail(inst, f"LOAD type mismatch for {arg!r}")
+                lines.append(f"    {dst} = {local_name};")
+            elif op_name == "DECLARE":
+                local_name, kind, _mutable = resolved[op.offset]
+                if arg_types != (kind,):
+                    _fail(inst, f"DECLARE type mismatch for {arg[0]!r}")
+                lines.append(f"    {local_name} = {args[0]};")
+            elif op_name == "ASSIGN":
+                local_name, kind, _mutable = resolved[op.offset]
+                if arg_types != (kind,):
+                    _fail(inst, f"ASSIGN type mismatch for {arg!r}")
+                lines.append(f"    {local_name} = {args[0]};")
+            elif op_name == "PUSH":
                 if type(arg) is bool:
                     lines.append(f"    {dst} = INT64_C({1 if arg else 0});")
                 elif type(arg) is int and 0 <= arg <= MAX_INT:
@@ -150,8 +226,8 @@ def _emit_c(value: ValueProgram) -> str:
                     _fail(inst, f"{op_name} requires Bool")
                 if op_name == "BRANCH_FALSE":
                     kind, target = arg
-                    if kind != "if":
-                        _fail(inst, "while loops are not in the native Value IR subset")
+                    if kind not in {"if", "while"}:
+                        _fail(inst, f"unsupported conditional branch kind {kind!r}")
                     condition = f"!{args[0]}"
                 else:
                     target = arg
@@ -166,9 +242,12 @@ def _emit_c(value: ValueProgram) -> str:
                 _emit_edge(lines, block.label, arg, blocks)
             elif op_name == "RETURN_VOID":
                 lines.append("    return;")
-            elif op_name in {"TICK", "POP", "SCOPE_IN", "SCOPE_OUT"}:
-                # Source step budgets are not available in this native subset.
-                # We never drop a runtime side effect of a supported operation.
+            elif op_name == "TICK":
+                lines.append("    sh_tick();")
+            elif op_name in {"POP", "SCOPE_IN", "SCOPE_OUT",
+                             "ASSERT_FRESH", "ASSERT_MUTABLE"}:
+                # Statically enforced in _collect_locals; TICK still tracks
+                # each statement and each while iteration at runtime.
                 pass
         last = block.operations[-1].instruction.op
         if last not in {"JUMP", "BRANCH_FALSE", "KEEP_TRUE", "KEEP_FALSE", "RETURN_VOID"}:
@@ -180,5 +259,5 @@ def _emit_c(value: ValueProgram) -> str:
 
 
 def emit_value_ir_c(program: Program) -> str:
-    """Compile only the documented tiny checked Int/Bool/if/println subset."""
+    """Compile restricted checked Int/Bool variables/branches/loops to C11."""
     return _emit_c(compile_value_ir(program))
