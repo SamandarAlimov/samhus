@@ -6,6 +6,12 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — CFG stack-value type analysis
+
+- Experimental data-flow annotations for stack and locals in CFG IR.
+- New `samhus ir FILE --types` command; type hints are conservative.
+- No native compiler, sound typed SSA, or release version changes.
+
 ## Unreleased research — control-flow IR (no version bump)
 
 - Added CFG middle-end: basic blocks, branch edges, entry state verification.

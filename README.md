@@ -27,6 +27,16 @@ the package/language version for every added feature. The first `0.0.1`
 tag is reserved until the gates in [Release policy](docs/RELEASE_POLICY.md)
 are verified and authorized. The existing Git history is preserved.
 
+## Conservative type-flow IR
+
+Run `python -m samhus ir examples/control_flow_ir.sahu --types` to
+inspect inferred stack-value and local variable types at each reachable
+CFG instruction. This uses the existing source typechecker and widens
+unresolved types to Any; it does not implement typed SSA, native codegen
+or a sound static type system.
+
+Read [the typed IR analysis limitations](docs/TYPED_IR.md).
+
 ## Validated control-flow IR experiment
 
 An intermediate control-flow representation (CFG IR) now splits VM

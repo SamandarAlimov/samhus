@@ -53,3 +53,10 @@ The sample prints 55 on each route. VM and IR use the same final runtime.
 
 All syntax, ABI and source extension choices remain provisional.
 Unreleased package version remains 0.0.0.dev0; no official 0.0.1.
+
+## Additional conservative type hints
+
+`python -m samhus ir FILE --types` invokes the source typechecker and
+annotates reachable IR instructions with value-stack and local-variable
+type hints. Flow joins widen unequal types to Any. This is explicitly
+not typed SSA or sound static analysis. See [TYPED_IR.md](TYPED_IR.md).

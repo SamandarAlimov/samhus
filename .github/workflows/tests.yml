@@ -69,6 +69,10 @@ jobs:
         run: python -m samhus run examples/modules/main.sahu --backend vm --typecheck
       - name: Generate multi-file native C source
         run: python -m samhus emit-c examples/modules/native_main.sahu
+      - name: Inspect typed flow IR
+        run: python -m samhus ir examples/control_flow_ir.sahu --types
+      - name: Inspect typed multi-file IR
+        run: python -m samhus ir examples/modules/main.sahu --types
       - name: Inspect validated control flow IR
         run: python -m samhus ir examples/control_flow_ir.sahu
       - name: Execute IR lowered example

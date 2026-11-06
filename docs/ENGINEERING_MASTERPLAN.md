@@ -53,6 +53,8 @@ conformance cases on all supported reference backends.
 ## Priority 2 — native compiler architecture (critical path)
 
 - [x] Prototype verified basic-block CFG IR and VM lowering.
+- [x] Prototype conservative CFG stack/local type-flow annotations.
+- [ ] Design a sound typed, effect-aware operation/SSA IR.
 - [ ] Evaluate LLVM, portable C and future typed IR on measured workloads.
 - [ ] Choose an owner-reviewed intermediate representation and codegen backend.
 - [ ] Compile all approved primitive and collection operations correctly.

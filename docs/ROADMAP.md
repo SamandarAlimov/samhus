@@ -109,3 +109,11 @@ native compilation, a sound typed subset, security and developer adoption.
 - [ ] Typed value-level IR, effect analysis and independent optimizations.
 - [ ] Native backend consuming IR with complete approved semantics.
 - [ ] Cross-platform memory safety and reproducible performance evidence.
+
+## Compiler type-flow experiment (still unreleased)
+
+- [x] Build source-checker-informed stack/local type hints for CFG IR.
+- [x] Iterate over loops/branches to converge hints and widen to Any.
+- [x] Display per-instruction value stacks and locals via `ir --types`.
+- [ ] Sound typed subset, per-value SSA representation and ownership model.
+- [ ] Native code generator using typed IR with full approved semantics.

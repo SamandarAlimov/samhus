@@ -158,3 +158,13 @@ This is not a production compiler, finalized semantics or security sandbox.
 - Added malformed IR and 300 deterministic differential workload cases.
 - C11 native remains AST-based; typed SSA is NOT implemented.
 - Kept unreleased 0.0.0.dev0 identifier, no 0.0.1 yet.
+
+## 2026-11-06 — conservative CFG value type propagation
+
+- Added `samhus/typed_ir.py` and optional `ir FILE --types` inspection.
+- Source checker runs first; CFG stack/local hints propagate through
+  loops, branches, calls, collections and numeric operations.
+- Unknown or conflicting types widen conservatively to Any.
+- 34 new unittest methods cover flow, CLI, errors and 150 generated cases.
+- This is NOT SSA, sound type checking, compiler independence or native IR.
+- Prototype remains 0.0.0.dev0; no official release or version bump.
