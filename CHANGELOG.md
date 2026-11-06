@@ -2,6 +2,13 @@
 
 Prototype iterations, not stable releases.
 
+## 0.0.9 — 2026-11-06 (experimental)
+
+- Finite Float, exponent literals, mixed Int/Float arithmetic and to_float.
+- Explicit Null distinct from Unit; is_null helper.
+- JSON Float/Null support, strict nonfinite and division checks.
+- Cross-backend tests, AST/formatter and CI integration.
+
 ## 0.0.8 — 2026-11-06 (experimental)
 
 - Immutable Map[String,T], map_set, map_has, map_keys, len and indexed access.

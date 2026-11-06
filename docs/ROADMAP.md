@@ -68,3 +68,11 @@ investment/release schedule. No date or budget is committed here.
 - [x] Tree/VM differential tests and generated Map lookup cases.
 - [ ] Proper Float/Null, schema validation, streaming JSON and Records/Struct.
 - [ ] Native backend collection semantics and independent security review.
+
+## Numeric and nullable data (experimental 0.0.9)
+
+- [x] Float literals, binary64 arithmetic and conversion.
+- [x] Null distinct from Unit; JSON fractional/null roundtrip.
+- [x] Formatter, AST and cross-backend regression coverage.
+- [ ] Decimal for money, Option/Result types, structured errors.
+- [ ] Full native numerical type equivalence and security review.

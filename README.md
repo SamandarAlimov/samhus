@@ -1,7 +1,7 @@
 # Samhus — Alsamos programming-language research project
 
 **Samhus** is Alsamos's founder-approved programming-language name.
-The current software is **prototype 0.0.8**, not a production-ready language
+The current software is **prototype 0.0.9**, not a production-ready language
 or an implementation comparable in completeness to C++ or Python 3.13.
 
 A restricted third path can now produce standalone native C11 executables via a system C compiler. The compiler itself still needs Python and this does not support the full Samhus grammar.
@@ -226,3 +226,16 @@ Native C11 does not support Maps or JSON; this is not production AI tooling.
 
 See [Map and JSON limitations](docs/MAPS_JSON.md). This syntax and the
 .sahu suffix remain provisional.
+
+## Finite Float and explicit Null (experimental 0.0.9)
+
+The tree interpreter and bytecode VM support finite binary64 Float,
+numeric Int/Float operations, to_float, and separate Null/is_null.
+JSON fractional values map to Float, JSON null maps to Null rather
+than Unit. Float arithmetic is approximate, NOT precise financial math.
+Native C11 remains limited and rejects these new types.
+
+    python -m samhus run examples/float_null.sahu --backend tree --typecheck
+    python -m samhus run examples/float_null.sahu --backend vm --typecheck
+
+See [Float and Null experimental semantics](docs/FLOAT_NULL.md).

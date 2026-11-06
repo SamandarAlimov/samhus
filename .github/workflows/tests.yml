@@ -47,6 +47,14 @@ jobs:
         run: python -m samhus run examples/maps_json.sahu --backend tree --typecheck
       - name: Execute Maps and JSON on VM backend
         run: python -m samhus run examples/maps_json.sahu --backend vm --typecheck
+      - name: Typecheck Float Null example
+        run: python -m samhus typecheck examples/float_null.sahu
+      - name: Run Float Null with tree backend
+        run: python -m samhus run examples/float_null.sahu --backend tree --typecheck
+      - name: Run Float Null with VM backend
+        run: python -m samhus run examples/float_null.sahu --backend vm --typecheck
+      - name: Export Float Null AST
+        run: python -m samhus ast examples/float_null.sahu
       - name: Disassemble compiled program
         run: python -m samhus disasm examples/typed.sahu
       - name: Check AST serializer

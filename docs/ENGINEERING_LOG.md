@@ -107,3 +107,14 @@ This is not a production compiler, finalized semantics or security sandbox.
 - Added regression suite including 100 generated Map lookup scenarios.
 - Experimental native C11 deliberately rejects Map and JSON APIs.
 - No inference, schemas, Float or native Map support claimed.
+
+## 2026-11-06: finite Float and explicit Null (0.0.9)
+
+- Implemented Float lexer/parser/runtime/VM and static checking.
+- Preserved Int/Int truncated division; mixed numeric arithmetic returns Float.
+- Added to_float and is_null helpers with source-positioned errors.
+- JSON now handles finite Float and maps null to distinct Null.
+- AST exporter, formatter and a new 60-test differential suite were added.
+- Added 200 generated numeric/JSON cases; initial CI 432/432 succeeded
+  on 6 jobs across Windows, macOS and Linux on Python 3.11/3.13.
+- Native C11 remains experimental and does not accept Float/Null.

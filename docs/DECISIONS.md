@@ -13,7 +13,8 @@ Only owner-approved decisions are final. Technical prototypes are reversible.
 | Optional type annotations | Experimental | Int, String, Bool, Unit, Any; runtime guards and opt-in typecheck. |
 | Static type system | Undecided | Current checker is a conservative prototype only. |
 | List[T] collections | Experimental | Immutable literals, indexing and append on tree/VM; syntax not final, native unsupported. |
-| Map[String,T] and JSON | Experimental | Immutable Maps, json_parse/json_encode; Float absent, JSON null maps to Unit. No stable semantics approved. |
+| Map[String,T] and JSON | Experimental | Immutable Maps, json_parse/json_encode now with Float/Null; no stable semantics approved. |
+| Float and Null types | Experimental | Finite binary64 Float with mixed arithmetic; explicit Null distinct from Unit. No permanent numeric/nullable model selected. |
 | Safe-core builtins | Experimental | assert, len, str and json_valid are provisional and tested across tree/VM; not approved stable stdlib. |
 | Formatting conventions | Experimental | AST formatter; does not preserve comments. |
 | Runtime limits | Experimental | Step/call depth ceilings; not a sandbox. |

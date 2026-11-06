@@ -19,7 +19,7 @@ The restricted native C11 compiler does not support these structures.
 
 - json_parse(String) -> Any converts JSON objects to Map and arrays to List.
 - json_encode(Any) -> String converts typed primitives, Lists and Maps.
-- JSON null currently maps to Unit/None (experimental semantics).
+- JSON null maps to explicit Null, distinct from Unit (experimental 0.0.9).
 - Fractional JSON values are rejected: no Float type exists yet.
 - json_valid checks JSON syntax and may accept valid fractional JSON even
   though json_parse cannot represent Float. These APIs differ intentionally.
@@ -45,3 +45,6 @@ No modules, native Map compilation, streaming JSON, or Float type yet.
 
 Unicode hardening: json_parse and json_encode reject unpaired UTF-16
 surrogates, reporting Samhus errors instead of host encoding exceptions.
+
+Update for 0.0.9: JSON fractional numbers parse to finite Float; JSON
+null maps to Null. The earlier fractional-number rejection no longer applies.
