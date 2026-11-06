@@ -123,7 +123,7 @@ class NativeExecutableTests(unittest.TestCase):
                 text=True, capture_output=True,
             )
             self.assertEqual(compile_result.returncode, 0, compile_result.stderr)
-            return subprocess.run([str(output)], text=True, capture_output=True)
+            return subprocess.run([str(output)], text=True, encoding="utf-8", capture_output=True)
 
     def test_native_hello(self):
         r = self.build_run(main('println("Hello, Samhus!")'))
