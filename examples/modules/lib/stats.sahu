@@ -1,0 +1,11 @@
+import "math.sahu"
+
+fn sum_values(values: List[Int]) -> Int {
+    var index: Int = 0
+    var total: Int = 0
+    while index < len(values) {
+        total = total + values[index]
+        index = index + 1
+    }
+    return total
+}

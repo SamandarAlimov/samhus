@@ -1,0 +1,6 @@
+// Multi-file Samhus research example.
+import "lib/stats.sahu"
+
+fn main() -> Unit {
+    println(double(sum_values([10, 20, 30])))
+}

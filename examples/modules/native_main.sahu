@@ -1,0 +1,5 @@
+import "lib/math.sahu"
+
+fn main() -> Unit {
+    println(double(21))
+}
