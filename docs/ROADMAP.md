@@ -125,3 +125,12 @@ native compilation, a sound typed subset, security and developer adoption.
 - [x] Verify IR after rewriting; add 200 generated differential programs.
 - [ ] Inter-block propagation, sound effect analysis and typed SSA.
 - [ ] Independent IR-based native code generation with benchmarks.
+
+## Value IR research milestone (unreleased)
+
+- [x] Stable producer/use IDs for stack values within verified CFG blocks.
+- [x] Stack-slot PHI nodes with explicit incoming predecessors and values.
+- [x] Tamper checks, branch/loop differential cases, and CLI inspection.
+- [ ] Proper SSA for mutable locals, dominance rules and effect-aware IR.
+- [ ] Code generation from SSA/value IR to native machine code.
+- [ ] Benchmark and establish genuine native/runtime parity.

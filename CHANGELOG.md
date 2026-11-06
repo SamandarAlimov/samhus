@@ -6,6 +6,13 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — Value IR stack graph (no version bump)
+
+- Named evaluation-stack producers/uses and PHI nodes at CFG merges.
+- CLI `ir FILE --values`, with optional `--optimize` for inspection.
+- Verified reconstructed graph and cross-engine branch/loop regression.
+- Not full typed SSA, native codegen or a 0.0.1 release.
+
 ## Unreleased research — verified IR literal folding
 
 - Opt-in local constant folding for bounded pure expressions.

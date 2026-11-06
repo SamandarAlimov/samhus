@@ -178,3 +178,13 @@ This is not a production compiler, finalized semantics or security sandbox.
 - Added 39 test methods and 200 generated differential programs.
 - Native backend remains AST-based; no performance or typed-SSA claim.
 - Package remains `0.0.0.dev0`, no official release.
+
+## 2026-11-07 (Asia/Tashkent) — Value IR stack graph prototype
+
+- Added `samhus/value_ir.py` for named stack-produced values and their uses.
+- Added PHI records for stack-slot merges at short-circuit branches/loops.
+- Added value-graph reconstruction verifier and CLI `ir FILE --values`.
+- Value IR can inspect CFG before/after the opt-in literal optimizer.
+- Added 36 regression methods including 180 generated branch/loop programs.
+- **Not** full SSA: mutable locals remain opaque; no native code generation.
+- Kept `0.0.0.dev0`, with no official 0.0.1 release.

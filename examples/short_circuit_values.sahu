@@ -1,0 +1,7 @@
+// Experimental stack-value IR; short-circuit joins create PHI nodes.
+fn main() -> Unit {
+    let a: Bool = true
+    let b: Bool = false
+    println(a && b)
+    println(a || b)
+}

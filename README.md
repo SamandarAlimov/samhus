@@ -27,6 +27,19 @@ the package/language version for every added feature. The first `0.0.1`
 tag is reserved until the gates in [Release policy](docs/RELEASE_POLICY.md)
 are verified and authorized. The existing Git history is preserved.
 
+## Stack-value IR with PHI joins (experimental)
+
+An **analysis-only Value IR** now gives evaluation-stack values stable
+definition IDs, tracks their instruction uses and records explicit
+stack PHI nodes at control-flow merges (e.g. short-circuit booleans).
+Mutable local variables are **not** SSA and the native backend does
+**not** consume these nodes. This is not a fully native/typed SSA compiler.
+
+    python -m samhus ir examples/short_circuit_values.sahu --values
+    python -m samhus ir examples/short_circuit_values.sahu --values --optimize
+
+Details: [Value IR boundaries](docs/VALUE_IR.md).
+
 ## Opt-in CFG IR constant folding
 
 The experimental optimizer folds bounded, pure literal expressions and

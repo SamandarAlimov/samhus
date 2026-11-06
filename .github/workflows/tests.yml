@@ -69,6 +69,12 @@ jobs:
         run: python -m samhus run examples/modules/main.sahu --backend vm --typecheck
       - name: Generate multi-file native C source
         run: python -m samhus emit-c examples/modules/native_main.sahu
+      - name: Inspect Value IR and PHI joins
+        run: python -m samhus ir examples/short_circuit_values.sahu --values
+      - name: Inspect optimized Value IR
+        run: python -m samhus ir examples/short_circuit_values.sahu --values --optimize
+      - name: Execute PHI example on VM
+        run: python -m samhus run examples/short_circuit_values.sahu --backend vm --typecheck
       - name: Inspect optimized IR
         run: python -m samhus ir examples/control_flow_ir.sahu --optimize
       - name: Execute optimized IR sample

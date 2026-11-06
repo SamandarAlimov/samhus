@@ -25,6 +25,7 @@ Only owner-approved decisions are final. Technical prototypes are reversible.
 | Compiler implementation language | Undecided | Python bootstrap does not decide final compiler technology. |
 | Bytecode compiler and VM | Experimental | Python-hosted in-memory compilation and VM; not approved as final backend. |
 | CFG intermediate representation | Experimental | Verified basic-block CFG with VM lowering; not typed SSA, native, or finalized. |
+| Stack-value IR with PHI | Experimental | Explicit evaluation-stack def/use and edge PHIs; mutable locals not SSA, not a native backend or an approved ABI. |
 | Bytecode verification | Experimental | Checks internal jump, stack and scope invariants. |
 | Experimental C11 native subset | Experimental | Typed, checked signed-64-bit lowering and standalone executable using a C compiler; not full language parity. |
 | LLVM/Wasm/native targets | Undecided | No selected production backend architecture. |
