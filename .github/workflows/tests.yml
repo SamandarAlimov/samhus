@@ -39,5 +39,7 @@ jobs:
         run: python -m samhus disasm examples/typed.sahu
       - name: Check AST serializer
         run: python -m samhus ast examples/typed.sahu
+      - name: Compile and run native executable
+        run: python scripts/native_smoke.py
       - name: Run smoke benchmark
         run: python scripts/benchmark.py --repeat 1
