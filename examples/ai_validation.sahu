@@ -1,0 +1,12 @@
+// Prototype: typed assertions and lightweight AI-output JSON validation.
+fn validate_ai_output(payload: String) -> Bool {
+    return json_valid(payload)
+}
+
+fn main() -> Unit {
+    let payload: String = "{\"model\":\"Alsahu\",\"ready\":true}"
+    let valid: Bool = validate_ai_output(payload)
+    assert(valid)
+    println("AI JSON validation: " + str(valid))
+    println("Samhus characters: " + str(len("Samhus")))
+}
