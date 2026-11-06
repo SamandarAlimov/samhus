@@ -9,7 +9,8 @@ from typing import Any, Callable, TextIO
 
 from .errors import SamhusError
 from .lexer import Token
-from .values import MAX_LIST_ITEMS, show, type_name as value_type_name
+from .values import MAX_LIST_ITEMS, MAX_MAP_ITEMS, MapValue, map_value, show, type_name as value_type_name
+from .json_bridge import decode_json, encode_json
 
 # One primitive signature per function. Keep signatures and execution in sync.
 BUILTIN_SIGNATURES: dict[str, tuple[tuple[str, ...], str]] = {
@@ -19,6 +20,11 @@ BUILTIN_SIGNATURES: dict[str, tuple[tuple[str, ...], str]] = {
     "append": (("Any", "Any"), "Any"),
     "str": (("Any",), "String"),
     "json_valid": (("String",), "Bool"),
+    "json_parse": (("String",), "Any"),
+    "json_encode": (("Any",), "String"),
+    "map_set": (("Any", "String", "Any"), "Any"),
+    "map_has": (("Any", "String"), "Bool"),
+    "map_keys": (("Any",), "List[String]"),
 }
 
 
@@ -54,6 +60,23 @@ def call_builtin(name: str, args: tuple[Any, ...], token: Token, output: TextIO)
             )
 
     value = args[0]
+    if name in {"map_set", "map_has", "map_keys"}:
+        if type(value) is not MapValue:
+            raise SamhusError(f"{name} expects Map, got {type_name(value)}", token.line, token.column)
+        if name == "map_has":
+            return any(key == args[1] for key, _ in value.entries)
+        if name == "map_keys":
+            return tuple(key for key, _ in value.entries)
+        key, item = args[1], args[2]
+        if not any(k == key for k, _ in value.entries) and len(value.entries) >= MAX_MAP_ITEMS:
+            raise SamhusError(f"Map size limit exceeded ({MAX_MAP_ITEMS})", token.line, token.column)
+        if any(k == key for k, _ in value.entries):
+            return MapValue(tuple((k, item if k == key else v) for k, v in value.entries))
+        return MapValue(value.entries + ((key, item),))
+    if name == "json_parse":
+        return decode_json(value, token)
+    if name == "json_encode":
+        return encode_json(value, token)
     if name == "append":
         if type(value) is not tuple:
             raise SamhusError(
@@ -65,7 +88,7 @@ def call_builtin(name: str, args: tuple[Any, ...], token: Token, output: TextIO)
             )
         return value + (args[1],)
     if name == "len":
-        if type(value) not in (tuple, str):
+        if type(value) not in (tuple, str, MapValue):
             raise SamhusError(
                 f"Type mismatch: expected String, got {type_name(value)} (or List)",
                 token.line, token.column,
@@ -78,7 +101,7 @@ def call_builtin(name: str, args: tuple[Any, ...], token: Token, output: TextIO)
             raise SamhusError("Assertion failed", token.line, token.column)
         return None
     if name == "len":
-        return len(value)
+        return len(value.entries) if type(value) is MapValue else len(value)
     if name == "str":
         return display(value)
     if name == "json_valid":

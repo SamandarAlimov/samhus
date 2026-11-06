@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from .errors import SamhusError
 from .parser import Expr, Function, Program, Stmt, parse_program
 from .stdlib import BUILTIN_SIGNATURES
-from .values import element_type
+from .values import element_type, map_value_type
 
 Type = str
 ANY = "Any"
@@ -43,6 +43,9 @@ class TypeChecker:
         if ANY in {actual, expected} or actual == expected:
             return True
         a, e = element_type(actual), element_type(expected)
+        if a is not None and e is not None:
+            return TypeChecker.compatible(a, e)
+        a, e = map_value_type(actual), map_value_type(expected)
         return a is not None and e is not None and TypeChecker.compatible(a, e)
 
     def require(self, actual: Type, expected: Type, node: Expr | Stmt) -> None:
@@ -56,6 +59,11 @@ class TypeChecker:
         if inner is not None and expr.kind == "list":
             for item in expr.args:
                 self.require_expr(item, inner)
+        inner = map_value_type(expected)
+        if inner is not None and expr.kind == "map":
+            for entry in expr.args:
+                self.require_expr(entry.left, "String")
+                self.require_expr(entry.right, inner)
         actual = self.expr_type(expr)
         self.require(actual, expected, expr)
         return actual
@@ -71,6 +79,15 @@ class TypeChecker:
             self.fail(expr, "Unsupported literal type")
         if expr.kind == "name":
             return self.resolve(expr.value, expr).type_name
+        if expr.kind == "map":
+            value_types = []
+            for entry in expr.args:
+                self.require_expr(entry.left, "String")
+                value_types.append(self.expr_type(entry.right))
+            if not value_types:
+                return "Map[String,Any]"
+            first = value_types[0]
+            return "Map[String," + (first if all(item == first for item in value_types) else "Any") + "]"
         if expr.kind == "list":
             types = [self.expr_type(item) for item in expr.args]
             if not types:
@@ -79,9 +96,13 @@ class TypeChecker:
             return "List[" + (first if all(item == first for item in types) else "Any") + "]"
         if expr.kind == "index":
             target = self.expr_type(expr.left)
-            self.require_expr(expr.right, "Int")
+            key_type = "String" if map_value_type(target) is not None else "Int"
+            self.require_expr(expr.right, key_type)
             if target == ANY:
                 return ANY
+            mapped = map_value_type(target)
+            if mapped is not None:
+                return mapped
             if target == "String":
                 return "String"
             inner = element_type(target)
@@ -89,6 +110,20 @@ class TypeChecker:
                 self.fail(expr, f"Indexing requires List or String, got {target}")
             return inner
         if expr.kind == "call":
+            if expr.value in {"map_set", "map_has", "map_keys"}:
+                count = {"map_set": 3, "map_has": 2, "map_keys": 1}[expr.value]
+                if len(expr.args) != count:
+                    self.fail(expr, f"{expr.value} expects {count} arguments, got {len(expr.args)}")
+                target = self.expr_type(expr.args[0])
+                val = map_value_type(target)
+                if target != ANY and val is None:
+                    self.fail(expr, f"{expr.value} expects Map, got {target}")
+                if len(expr.args) >= 2:
+                    self.require_expr(expr.args[1], "String")
+                if expr.value == "map_set":
+                    self.require_expr(expr.args[2], val or ANY)
+                    return target
+                return "Bool" if expr.value == "map_has" else "List[String]"
             if expr.value == "append":
                 if len(expr.args) != 2:
                     self.fail(expr, f"append expects 2 arguments, got {len(expr.args)}")
@@ -105,7 +140,7 @@ class TypeChecker:
                 if len(expr.args) != 1:
                     self.fail(expr, f"len expects 1 argument, got {len(expr.args)}")
                 candidate = self.expr_type(expr.args[0])
-                if candidate not in (ANY, "String") and element_type(candidate) is None:
+                if candidate not in (ANY, "String") and element_type(candidate) is None and map_value_type(candidate) is None:
                     self.fail(expr, f"Type mismatch: expected String, got {candidate} (or List)")
                 return "Int"
             signature = BUILTIN_SIGNATURES.get(expr.value)
