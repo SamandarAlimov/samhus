@@ -1,0 +1,14 @@
+// Experimental immutable Maps and structured JSON for AI/data workflows.
+fn main() -> Unit {
+    let payload: String = "{\"model\":\"Alsamos AI\",\"scores\":[10,20,30],\"ready\":true}"
+    let data = json_parse(payload)
+    assert(data["ready"])
+    let scores: List[Int] = data["scores"]
+    let meta: Map[String,String] = {"name": "Samhus"}
+    let updated: Map[String,String] = map_set(meta, "model", data["model"])
+
+    println(updated["model"])
+    println(scores[1])
+    println(map_keys(updated))
+    println(json_encode(updated))
+}
