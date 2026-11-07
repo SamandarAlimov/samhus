@@ -218,6 +218,10 @@ def _emit_one(function, signature, functions) -> list[str]:
                     _fail(inst, f"unsupported binary {arg!r} on {arg_types}")
             elif op_name == "CALL":
                 function_name, count = arg
+                # VM counts built-in invocations as execution steps. User
+                # calls tick in sh_enter() at the callee's entry instead.
+                if function_name in {"println", "assert"}:
+                    lines.append("    sh_tick();")
                 if function_name == "println" and count == 1:
                     if arg_types == ("Int",):
                         lines.append(f'    printf("%" PRId64 "\\n", {args[0]});')
