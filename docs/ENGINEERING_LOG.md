@@ -278,3 +278,16 @@ This is not a production compiler, finalized semantics or security sandbox.
   the 8 MiB arena; a deliberately colliding bucket regression checks
   correctness and earlier views, plus Unicode and opt-in C codegen checks.
 - No reclaiming memory management or final memory model is implemented.
+
+## 2026-11-07 — independent refcounted C11 String ownership research
+
+- Added standalone `runtime/owned_string.{h,c}` with explicit retain/drop,
+  code-point slices that keep their owner's allocation live, concat and
+  last-reference heap reclamation.
+- A 1 MiB concurrently live payload budget bounds allocated String content
+  but does not account for metadata, system allocations or total process RAM.
+- Added 12 compiled C11 tests for aliases, UTF-8, slice lifetimes, invalid
+  operations, repeat allocation, budget rejection, and non-integration checks.
+- The manual C11 API remains **separate** from the Value IR compiler; without
+  verified ownership events for all CFG edges, it cannot be integrated safely.
+- No official release, permanent language memory model or ABI was approved.

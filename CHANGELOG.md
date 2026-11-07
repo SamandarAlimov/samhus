@@ -6,6 +6,17 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — independent refcounted C11 String API
+
+- Added a manual C11 owned UTF-8 runtime with explicit retain/drop,
+  code-point slices retaining their backing allocations, concatenation,
+  and last-reference memory reclamation.
+- Added a 1 MiB concurrently live payload limit and strict UTF-8 validation.
+- Added 12 regression cases compiling and executing independent C11 programs
+  on the cross-platform CI matrix.
+- This runtime is not integrated with native Value IR, does not guarantee
+  arbitrary C handle safety, and is not a permanent memory-model decision.
+
 ## Unreleased research — native String arena content reuse
 
 - Added a bounded 4096-slot direct-mapped intern cache in the native

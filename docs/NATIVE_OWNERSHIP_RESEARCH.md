@@ -27,7 +27,15 @@ use-after-free and content mutation bugs.
 
 The cache introduced above is *deduplication*; it never frees memory.
 
-## Next reversible architecture experiment (not yet implemented)
+## Separate C11 owned-handle proof of concept (not compiler-integrated)
+
+The independent C11 runtime in `runtime/owned_string.{h,c}` explores
+reference counts, UTF-8 views that retain their owner, last-reference
+reclamation and a 1 MiB live-payload ceiling. C code must use explicit
+retain/drop correctly. It is **not enabled in the Samhus compiler**.
+See [isolated runtime research](OWNED_STRING_RESEARCH.md).
+
+## Next compiler-integration architecture experiment (not yet implemented)
 
 Implement a **separate** owned-handle prototype, with:
 
