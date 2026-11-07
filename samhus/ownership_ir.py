@@ -147,6 +147,18 @@ def _plan(value: ValueProgram) -> OwnershipReport:
                         f"consumed by {op}",
                     ))
 
+    # Lexical identities and may-reaching store facts are an independent,
+    # conservative overlay. These events are still NOT executable releases.
+    from .local_lifetime_ir import analyze_local_lifetime_ir
+    local = analyze_local_lifetime_ir(value)
+    for event in local.events:
+        events.append(OwnershipEvent(
+            event.function, event.block, event.offset,
+            event.action, event.slot, event.detail,
+        ))
+    for blocker in local.blockers:
+        note(blocker)
+
     return OwnershipReport(tuple(events), tuple(blockers))
 
 

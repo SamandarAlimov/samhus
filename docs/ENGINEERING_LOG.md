@@ -303,3 +303,14 @@ This is not a production compiler, finalized semantics or security sandbox.
 - `safe_to_lower` remains false: locals, edge PHIs, exceptional cleanup,
   ownership ABI and complete alias/lifetime analysis are NOT implemented.
 - The independent refcounted C runtime is not integrated or substituted.
+
+## 2026-11-07 — scoped String owners and reaching definitions
+
+- Added a standalone `local_lifetime_ir` read-only Value IR overlay that
+  resolves parameter/local lexical bindings and distinguishes nested shadows.
+- A finite may-reaching-store fixed-point tracks String declarations and
+  assignments across CFG successors, branch merges and loop backedges.
+- Reports owner replacement, scope-exit/return cleanup requirements and
+  multiple reaching stores, without emitting C retains, drops or frees.
+- Added differential and verifier-tampering regressions; permanent ABI and
+  lifetime semantics still require review. `safe_to_lower` remains false.

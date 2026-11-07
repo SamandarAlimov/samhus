@@ -17,6 +17,31 @@ and reports candidate lifetime operations for static UTF-8 String values:
 - `DROP_UNUSED_TEMP` — evaluation-stack results discarded by POP.
 - `PHI_EDGE_OWNER` — future String joins need correctly staged edge transfers.
 
+### Scoped local lifetime facts (new research layer)
+
+`samhus/local_lifetime_ir.py` resolves lexical String bindings into
+stable `local:<DECLARE offset>` slots, including nested shadowing and
+function parameters. It adds the following candidate obligations:
+
+- `BIND_STRING_LOCAL`: a String value is stored in a new lexical binding.
+- `READ_STRING_LOCAL_STORE`: a local String read and the known may-reaching
+  declaration/assignment versions.
+- `REPLACE_STRING_LOCAL_OWNER`: a mutable String local is overwritten.
+  A future runtime must retain the incoming alias *before* dropping an old
+  owner, if aliases overlap.
+- `RELEASE_STRING_AT_SCOPE_EXIT`: scope exit encounters a live String local.
+- `RELEASE_STRING_AT_RETURN`: return bypasses ordinary scope-exit markers,
+  so surviving String locals need explicit cleanup after protecting any
+  returned aliases.
+- `JOIN_STRING_REACHING_STORES`: branch/loop flow joins different reaching
+  String stores to the same lexical binding.
+
+The data-flow computes **may-reaching store sets**, not local-variable SSA
+value identities or precise refcounts. Each loop is iterated to a finite
+fixed point. These events describe possible cleanup locations, **not safe
+drop instructions**: exceptional paths, escaped aliases, parameter ownership,
+temporaries and call ABI remain unproven.
+
 Every operation is a **requirement marker, not an executable instruction**.
 `safe_to_lower` is always false, even for trivial programs, because
 current Value IR does not model exceptional cleanup, local-variable SSA,

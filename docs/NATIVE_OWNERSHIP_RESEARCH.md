@@ -42,6 +42,10 @@ candidate lifetime events and unresolved local/call/edge questions.
 These markers are *not safe executable releases*. See
 [ownership IR research](OWNERSHIP_IR.md).
 
+The read-only local lifetime overlay now resolves shadowing, possible
+reaching assignments and scope/return cleanup obligations. It does not
+prove owners can be released. See [ownership IR](OWNERSHIP_IR.md).
+
 ## Next compiler-integration architecture experiment (not yet implemented)
 
 Implement a **separate** owned-handle prototype, with:
