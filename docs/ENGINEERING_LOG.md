@@ -265,3 +265,16 @@ This is not a production compiler, finalized semantics or security sandbox.
   budget exhaustion and cross-backend regression coverage.
 - There is no reclaiming allocator, ownership specification, FFI or official
   Samhus release; permanent model remains a founder decision.
+
+## 2026-11-07 — verified native concat content reuse experiment
+
+- Extended the bounded static concat arena with a 4096-slot direct-mapped
+  content cache. Identical concat outputs may reuse existing immutable
+  bytes even if split into different operands.
+- Cache buckets use deterministic FNV-1a and validate actual bytes before
+  reusing a view; a hash collision cannot affect String correctness.
+- Cache replacement does not free previous bytes, maintaining stable views.
+- Added a 600-iteration, 20 KB result regression that previously exhausted
+  the 8 MiB arena; a deliberately colliding bucket regression checks
+  correctness and earlier views, plus Unicode and opt-in C codegen checks.
+- No reclaiming memory management or final memory model is implemented.

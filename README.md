@@ -34,8 +34,9 @@ borrowed from compiler-created **static UTF-8 literals**, represented as
 **pointer + byte length**, with `println`, `len` (Unicode code points),
 content equality, checked `String[Int]` code-point indexing, native
 `String + String` and typed locals/functions. Concatenation uses an opt-in
-8 MiB process-lifetime static arena with checked exhaustion and no memory
-reclamation. No heap, GC, general slicing or FFI is implemented. Source literals with NUL or over 65536 UTF-8
+8 MiB process-lifetime static arena with checked exhaustion and a 4096-slot
+content-reuse cache for identical results. Cache eviction never frees bytes:
+this is **deduplication, not general memory reclamation**. No heap, GC, general slicing or FFI is implemented. Source literals with NUL or over 65536 UTF-8
 bytes are deliberately rejected. This is a temporary implementation
 approach, not an approved Samhus memory model.
 
