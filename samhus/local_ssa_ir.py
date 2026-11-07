@@ -1,7 +1,7 @@
 """Research-only local String store-version / PHI graph.
 
 This is a named *store* data-flow overlay, not a complete owned-value SSA:
-the graph has no independent dominance proof, alias/escape semantics,
+the graph has CFG dominator checks, but no alias/escape semantics,
 exceptional cleanup, retain/drop emission or safe native lowering.
 """
 from dataclasses import dataclass
@@ -248,7 +248,10 @@ def _construct(value: ValueProgram) -> LocalSSAReport:
 
 def analyze_local_ssa_ir(value: ValueProgram) -> LocalSSAReport:
     verify_value_ir(value)
-    return _construct(value)
+    report = _construct(value)
+    from .local_ssa_dominance import verify_local_ssa_dominance
+    verify_local_ssa_dominance(value, report)
+    return report
 
 
 def verify_local_ssa_ir(value: ValueProgram, report: LocalSSAReport) -> None:
@@ -258,3 +261,5 @@ def verify_local_ssa_ir(value: ValueProgram, report: LocalSSAReport) -> None:
         raise BytecodeValidationError(
             "Local String SSA report differs from verified Value IR"
         )
+    from .local_ssa_dominance import verify_local_ssa_dominance
+    verify_local_ssa_dominance(value, report)

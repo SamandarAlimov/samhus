@@ -325,3 +325,13 @@ This is not a production compiler, finalized semantics or security sandbox.
   tests; CI includes CLI smoke on Ubuntu/Windows/macOS.
 - No dominance proof, alias-safe retain/drop, owned ABI or native lowering.
   `safe_to_lower` stays false; version unchanged `0.0.0.dev0`.
+
+## 2026-11-08 — independent local String CFG dominance verification
+
+- Added independent fixed-point block dominators and a structural
+  def-use validator for String store SSA versions.
+- Reject missing PHI predecessor edges, non-dominating values, duplicate
+  definitions, cross-slot reads, malformed stores and use-before-definition.
+- Added valid loop/shadowing and intentionally forged-graph regression
+  cases; this proves neither alias safety nor executable ownership codegen.
+- `safe_to_lower=false` and the standalone C11 runtime remain unchanged.

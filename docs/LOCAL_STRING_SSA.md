@@ -2,7 +2,8 @@
 
 Samhus remains unreleased at `0.0.0.dev0`; the source extension
 `.sahu` is provisional. This pass is **not full SSA**, a memory
-ownership model, a verified dominance graph, or production compiler code.
+ownership model or production compiler code. Its SSA-style graph now has
+independent CFG dominance checks, but not a heap-lifetime proof.
 
 The `samhus/local_ssa_ir.py` analyzer uses verified stack Value IR
 plus the established lexical String lifetime facts to assign each local
@@ -40,13 +41,17 @@ report rejection.
 - PHI is a data-flow merge marker; its operands do **not** indicate
   retain/drop operations or guarantee source lifetime.
 - A fixed-point computes loop reaching versions from verified CFG edges.
-  The verifier re-derives this graph; no independent dominance proof.
+  The verifier re-derives this graph. A separate structural verifier
+  calculates CFG dominators and rejects values from unrelated branches,
+  incorrect PHI predecessor lists, undefined definitions, wrong lexical
+  slots, forged store offsets and reads before definitions. Neither
+  check independently proves language semantics or heap lifetime safety.
 - Retain/drop placement, exception cleanup, function ABI, concurrency
   and FFI remain unspecified. The separately tested C11 refcounted
   String runtime remains **unconnected** to this IR.
 - `safe_to_lower` is **always false**; production correctness or safety
   is not established by having a named store/PHI graph.
 
-Next steps: independent dominance checks, explicit edge-specific lifetime
-effects and a reviewed ownership-aware calling convention before considering
+Next steps: explicit edge-specific lifetime effects, exceptional cleanup,
+and a reviewed ownership-aware calling convention before considering
 lowering to the standalone experimental C11 owned String library.

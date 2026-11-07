@@ -27,6 +27,14 @@ the package/language version for every added feature. The first `0.0.1`
 tag is reserved until the gates in [Release policy](docs/RELEASE_POLICY.md)
 are verified and authorized. The existing Git history is preserved.
 
+## Independent Local SSA CFG dominance checks
+
+The String local SSA report now receives separate CFG dominator and
+version-use validation: branch/loop PHI edges must cite defined values
+from the right lexical slot, and reads cannot use non-dominating values.
+This is analysis-only, never permission to reclaim memory. Details in
+[local SSA research](docs/LOCAL_STRING_SSA.md).
+
 ## Local String store SSA-like IR (research-only)
 
 Inspect read-only local String store versions, per-block reads and branch/

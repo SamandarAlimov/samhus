@@ -6,6 +6,15 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — independent local String SSA dominance validator
+
+- Independently compute CFG block dominators and reject non-dominating
+  local String loads, cross-branch PHI inputs and use-before-definition.
+- Validate local slot identity, SSA name integrity, instruction offsets,
+  exact PHI predecessor sets and parameters separately from SSA graph
+  reconstruction; cover these with adversarial regression tests.
+- Still no native automatic refcounting, ownership lowering or final ABI.
+
 ## Unreleased research — local String store SSA-like graph
 
 - Added verified Value IR overlay identifying deterministic local String
