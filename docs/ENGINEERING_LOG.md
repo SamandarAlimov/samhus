@@ -291,3 +291,15 @@ This is not a production compiler, finalized semantics or security sandbox.
 - The manual C11 API remains **separate** from the Value IR compiler; without
   verified ownership events for all CFG edges, it cannot be integrated safely.
 - No official release, permanent language memory model or ABI was approved.
+
+## 2026-11-07 — read-only String ownership obligations IR
+
+- Introduced a conservative overlay on verified Value IR, classifying static
+  literals, concat allocations, index-parent retains, local load/store,
+  call arguments/results, returns and discarded String values.
+- A report integrity verifier re-derives obligations and rejects tampering.
+- Added CLI `ir --ownership` and regression coverage, including optimized
+  CFG and differential interpreter/VM cases.
+- `safe_to_lower` remains false: locals, edge PHIs, exceptional cleanup,
+  ownership ABI and complete alias/lifetime analysis are NOT implemented.
+- The independent refcounted C runtime is not integrated or substituted.

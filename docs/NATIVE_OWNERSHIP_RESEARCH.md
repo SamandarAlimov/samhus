@@ -35,6 +35,13 @@ reclamation and a 1 MiB live-payload ceiling. C code must use explicit
 retain/drop correctly. It is **not enabled in the Samhus compiler**.
 See [isolated runtime research](OWNED_STRING_RESEARCH.md).
 
+## Read-only Value IR ownership obligations (implemented; no codegen)
+
+The `samhus/ownership_ir.py` overlay and `ir --ownership` CLI report
+candidate lifetime events and unresolved local/call/edge questions.
+These markers are *not safe executable releases*. See
+[ownership IR research](OWNERSHIP_IR.md).
+
 ## Next compiler-integration architecture experiment (not yet implemented)
 
 Implement a **separate** owned-handle prototype, with:

@@ -103,6 +103,8 @@ jobs:
         run: python -m samhus emit-ir-c examples/native_value_ir_strings.sahu
       - name: Inspect bounded UTF-8 native String view C11 code
         run: python -m samhus emit-ir-c examples/native_value_ir_slices.sahu
+      - name: Inspect read-only String ownership obligations
+        run: python -m samhus ir examples/native_value_ir_concat.sahu --ownership
       - name: Build and run standalone Value IR native executable
         run: python scripts/native_value_ir_smoke.py
       - name: Compile and run native executable

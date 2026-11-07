@@ -6,6 +6,15 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — read-only String ownership obligations IR
+
+- Added verified Value IR overlay with String create/borrow/retain/transfer
+  and candidate drop events, plus explicit blockers to executable lowering.
+- Exposed `samhus ir --ownership`, with a re-derived report verifier,
+  CLI regressions and interpreter/VM differential checks.
+- No backend codegen or automatic release of memory. The owned C11 runtime
+  continues to be a separate manual experiment.
+
 ## Unreleased research — independent refcounted C11 String API
 
 - Added a manual C11 owned UTF-8 runtime with explicit retain/drop,
