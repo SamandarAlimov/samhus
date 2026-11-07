@@ -27,6 +27,15 @@ the package/language version for every added feature. The first `0.0.1`
 tag is reserved until the gates in [Release policy](docs/RELEASE_POLICY.md)
 are verified and authorized. The existing Git history is preserved.
 
+## Lexical String lifetimes and reaching writes — analysis only
+
+The `ir --ownership` viewer now resolves shadowed String bindings to
+distinct compiler slots, identifies assignments that replace old owners,
+marks scope/early-return cleanup obligations and computes conservative
+**may-reaching writes** across branches and loops. This is not mutable
+local SSA, a verified borrow checker, or runnable retain/drop lowering.
+See [ownership analysis research](docs/OWNERSHIP_IR.md).
+
 ## Read-only ownership obligations analysis (no native lowering)
 
 Inspect possible String retain, transfer, slice and drop obligations over

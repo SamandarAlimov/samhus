@@ -6,6 +6,15 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — lexical String lifetime analysis
+
+- Added read-only lexical binding identity and scoped cleanup obligations
+  over verified CFG Value IR, including nested shadowing and early returns.
+- Computes monotone may-reaching String assignments across branches and loops
+  and reports potential owner joins without claiming SSA or safety.
+- Tests cover rebinds, shadowing, stable branches, loop backedges and
+  escaping return aliases. No executable releases or ABI decision.
+
 ## Unreleased research — read-only String ownership obligations IR
 
 - Added verified Value IR overlay with String create/borrow/retain/transfer
