@@ -47,14 +47,17 @@ def _emit_edge(lines: list[str], predecessor: str, target: str, blocks) -> None:
 
 
 
-def _collect_locals(function, types):
+def _collect_locals(function, types, signature):
     """Resolve locals using bytecode's lexical SCOPE_IN/OUT order.
 
     An individual source DECLARE has a unique hoisted C cell, even if the
     variable is shadowed. Cells are overwritten on each loop iteration.
     This deliberately does not claim mutable locals have become SSA values.
     """
-    scopes = [{}]
+    scopes = [{
+        name: (f"sh_arg_{i}", kind, False)
+        for i, (name, kind) in enumerate(zip(signature.params, signature.param_types))
+    }]
     resolved = {}
     variables = []
     for block in function.blocks:
@@ -97,17 +100,8 @@ def _collect_locals(function, types):
         raise ValueError("Native Value IR has unbalanced lexical scopes")
     return resolved, variables
 
-def _emit_c(value: ValueProgram) -> str:
-    verify_value_ir(value)
-    if len(value.functions) != 1 or value.functions[0].name != "main":
-        origin = value.cfg.functions[0].token
-        raise SamhusError("Native Value IR subset: only main() supported",
-                          origin.line, origin.column)
-    function = value.functions[0]
-    signature = value.cfg.functions[0]
-    if signature.params or signature.return_type != "Unit":
-        raise SamhusError("Native Value IR subset: main must be fn main() -> Unit",
-                          signature.token.line, signature.token.column)
+def _emit_one(function, signature, functions) -> list[str]:
+    """Translate a verified Value IR function; all temps are call-local."""
     blocks = {block.label: block for block in function.blocks}
     types = {}
     for block in function.blocks:
@@ -117,7 +111,7 @@ def _emit_c(value: ValueProgram) -> str:
             if op.output is not None:
                 types[op.output] = op.output_type
 
-    resolved, variables = _collect_locals(function, types)
+    resolved, variables = _collect_locals(function, types, signature)
     valid = {"Int", "Bool", "Unit"}
     for block in function.blocks:
         for phi in block.phis:
@@ -135,18 +129,18 @@ def _emit_c(value: ValueProgram) -> str:
                 "BRANCH_FALSE", "KEEP_FALSE", "KEEP_TRUE", "EXPECT_BOOL",
                 "SCOPE_IN", "SCOPE_OUT", "RETURN_VOID",
                 "LOAD", "DECLARE", "ASSIGN", "ASSERT_MUTABLE", "ASSERT_FRESH",
+                "RETURN",
             }:
                 _fail(instr, f"unsupported instruction {instr.op!r}")
 
-    # Hoist all value registers, including PHI destinations, to function
-    # scope so C's goto cannot jump into variable initialization.
+    # C locals per invocation prevent recursive frames sharing value cells.
+    result_type = signature.return_type
+    result_c = "void" if result_type == "Unit" else "int64_t"
+    parameters = ", ".join(f"int64_t sh_arg_{i}" for i in range(len(signature.params))) or "void"
     lines = [
-        PRELUDE,
-        "static uint64_t sh_native_steps = UINT64_C(0);",
-        "static void sh_tick(void) {",
-        '    if (++sh_native_steps > UINT64_C(100000)) sh_fail("Execution step limit exceeded (100000)");',
-        "}",
-        "static void sh_fn_main(void) {",
+        f"static {result_c} {functions[signature.name][0]}({parameters}) {{",
+        "    sh_enter();",
+        "    sh_tick();",
     ]
     for symbol in sorted(types):
         lines.append(f"    int64_t {_symbol(symbol)} = INT64_C(0);")
@@ -215,6 +209,23 @@ def _emit_c(value: ValueProgram) -> str:
                         _fail(inst, f"println does not support {arg_types}")
                 elif function_name == "assert" and count == 1 and arg_types == ("Bool",):
                     lines.append(f'    if (!{args[0]}) sh_fail("Assertion failed");')
+                elif function_name in functions:
+                    target, target_sig = functions[function_name]
+                    expected = target_sig.param_types
+                    if count != len(expected) or arg_types != expected:
+                        _fail(inst, f"invalid native call to {function_name!r}: "
+                                    f"expected {expected}, got {arg_types}")
+                    argument_list = ", ".join(args)
+                    if target_sig.return_type == "Unit":
+                        if op.output_type != "Unit":
+                            _fail(inst, f"bad Unit result type from {function_name!r}")
+                        lines.append(f"    {target}({argument_list});")
+                        lines.append(f"    {dst} = INT64_C(0);")
+                    elif op.output_type == target_sig.return_type:
+                        lines.append(f"    {dst} = {target}({argument_list});")
+                    else:
+                        _fail(inst, f"bad native return type from {function_name!r}")
+                    continue
                 else:
                     _fail(inst, f"unsupported call {function_name!r}")
                 lines.append(f"    {dst} = INT64_C(0);")
@@ -240,8 +251,17 @@ def _emit_c(value: ValueProgram) -> str:
                 lines.append("    }")
             elif op_name == "JUMP":
                 _emit_edge(lines, block.label, arg, blocks)
+            elif op_name == "RETURN":
+                if arg_types != (result_type,):
+                    _fail(inst, f"return mismatch: expected {result_type}, got {arg_types}")
+                lines.append("    sh_leave();")
+                lines.append("    return;" if result_type == "Unit" else f"    return {args[0]};")
             elif op_name == "RETURN_VOID":
-                lines.append("    return;")
+                if result_type == "Unit":
+                    lines.append("    sh_leave();")
+                    lines.append("    return;")
+                else:
+                    lines.append('    sh_fail("Non-Unit function exited without return");')
             elif op_name == "TICK":
                 lines.append("    sh_tick();")
             elif op_name in {"POP", "SCOPE_IN", "SCOPE_OUT",
@@ -250,14 +270,55 @@ def _emit_c(value: ValueProgram) -> str:
                 # each statement and each while iteration at runtime.
                 pass
         last = block.operations[-1].instruction.op
-        if last not in {"JUMP", "BRANCH_FALSE", "KEEP_TRUE", "KEEP_FALSE", "RETURN_VOID"}:
+        if last not in {"JUMP", "BRANCH_FALSE", "KEEP_TRUE", "KEEP_FALSE", "RETURN", "RETURN_VOID"}:
             if len(block.successors) != 1:
                 raise ValueError("Invalid native Value IR fallthrough")
             _emit_edge(lines, block.label, block.successors[0], blocks)
-    lines += ["}", "int main(void) {", "    sh_fn_main();", "    return 0;", "}", ""]
+    lines.append("}")
+    return lines
+
+
+def _emit_c(value: ValueProgram) -> str:
+    verify_value_ir(value)
+    signatures = {fn.name: fn for fn in value.cfg.functions}
+    main = signatures.get("main")
+    if main is None or main.params or main.return_type != "Unit":
+        token = main.token if main is not None else value.cfg.functions[0].token
+        raise SamhusError("Native Value IR subset: main must be fn main() -> Unit",
+                          token.line, token.column)
+    functions = {}
+    for idx, fn in enumerate(value.cfg.functions):
+        if (fn.return_type not in {"Int", "Bool", "Unit"}
+                or len(fn.params) != len(fn.param_types)
+                or any(kind not in {"Int", "Bool"} for kind in fn.param_types)):
+            raise SamhusError(
+                "Native Value IR subset: functions require explicit Int/Bool parameters and Int/Bool/Unit return",
+                fn.token.line, fn.token.column,
+            )
+        functions[fn.name] = ("sh_fn_main" if fn.name == "main" else f"sh_fn_{idx}", fn)
+    lines = [
+        PRELUDE,
+        "static uint64_t sh_native_steps = UINT64_C(0);",
+        "static volatile uint64_t sh_native_calls = UINT64_C(0);",
+        "static void sh_tick(void) {",
+        '    if (++sh_native_steps > UINT64_C(100000)) sh_fail("Execution step limit exceeded (100000)");',
+        "}",
+        "static void sh_enter(void) {",
+        '    if (++sh_native_calls > UINT64_C(128)) sh_fail("Function call depth limit exceeded (128)");',
+        "}",
+        "static void sh_leave(void) { --sh_native_calls; }",
+    ]
+    # Forward prototypes permit recursive and out-of-order user calls.
+    for fn in value.cfg.functions:
+        return_c = "void" if fn.return_type == "Unit" else "int64_t"
+        params_c = ", ".join("int64_t" for _ in fn.params) or "void"
+        lines.append(f"static {return_c} {functions[fn.name][0]}({params_c});")
+    for fn in value.functions:
+        lines.extend(_emit_one(fn, signatures[fn.name], functions))
+    lines += ["int main(void) {", "    sh_fn_main();", "    return 0;", "}", ""]
     return "\n".join(lines)
 
 
 def emit_value_ir_c(program: Program) -> str:
-    """Compile restricted checked Int/Bool variables/branches/loops to C11."""
+    """Compile checked Int/Bool functions, locals and flow to standalone C11."""
     return _emit_c(compile_value_ir(program))
