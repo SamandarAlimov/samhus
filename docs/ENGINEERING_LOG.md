@@ -314,3 +314,14 @@ This is not a production compiler, finalized semantics or security sandbox.
   multiple reaching stores, without emitting C retains, drops or frees.
 - Added differential and verifier-tampering regressions; permanent ABI and
   lifetime semantics still require review. `safe_to_lower` remains false.
+
+## 2026-11-07 — read-only local String store SSA-like PHIs
+
+- Added an independently viewable local String store-version graph over
+  verified Value IR and existing scoped lifetime facts.
+- Versioned parameters, declarations and assignments; tracks load sources
+  through branches, loops and lexical shadowing, with per-predecessor PHIs.
+- Added `ir --local-ssa`, report integrity re-derivation and differential
+  tests; CI includes CLI smoke on Ubuntu/Windows/macOS.
+- No dominance proof, alias-safe retain/drop, owned ABI or native lowering.
+  `safe_to_lower` stays false; version unchanged `0.0.0.dev0`.

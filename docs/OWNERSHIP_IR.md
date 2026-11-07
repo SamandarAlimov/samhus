@@ -36,6 +36,10 @@ function parameters. It adds the following candidate obligations:
 - `JOIN_STRING_REACHING_STORES`: branch/loop flow joins different reaching
   String stores to the same lexical binding.
 
+A separate [local store SSA-like research graph](LOCAL_STRING_SSA.md)
+now names individual String store versions and per-edge PHI sources.
+It does not turn these stores into safe owned-heap SSA values.
+
 The data-flow computes **may-reaching store sets**, not local-variable SSA
 value identities or precise refcounts. Each loop is iterated to a finite
 fixed point. These events describe possible cleanup locations, **not safe

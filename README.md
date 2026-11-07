@@ -27,6 +27,15 @@ the package/language version for every added feature. The first `0.0.1`
 tag is reserved until the gates in [Release policy](docs/RELEASE_POLICY.md)
 are verified and authorized. The existing Git history is preserved.
 
+## Local String store SSA-like IR (research-only)
+
+Inspect read-only local String store versions, per-block reads and branch/
+loop PHI edges using `python -m samhus ir
+examples/native_value_ir_concat.sahu --local-ssa`.
+This is **not a native ownership code generator**, final SSA, or permission
+to free memory; `safe_to_lower=false` is mandatory.
+See [local store graph limits](docs/LOCAL_STRING_SSA.md).
+
 ## Lexical String lifetimes and reaching writes — analysis only
 
 The `ir --ownership` viewer now resolves shadowed String bindings to
