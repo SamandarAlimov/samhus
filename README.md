@@ -27,6 +27,15 @@ the package/language version for every added feature. The first `0.0.1`
 tag is reserved until the gates in [Release policy](docs/RELEASE_POLICY.md)
 are verified and authorized. The existing Git history is preserved.
 
+## Isolated owned String C11 experiment (not compiler-integrated)
+
+`runtime/owned_string.{h,c}` is an independent **manual C11 API**
+demonstrating reference counting, UTF-8 slices that retain their backing
+storage, last-reference reclamation and a 1 MiB live-payload budget.
+**Samhus programs do not use this experimental runtime**; native Value IR
+still compiles to the checked 8 MiB process-lifetime arena.
+See [the ownership research note](docs/OWNED_STRING_RESEARCH.md).
+
 ## Bounded native UTF-8 String subset — experimental
 
 Independent Value IR -> C11 compilation now supports `String` values
