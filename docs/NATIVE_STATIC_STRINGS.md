@@ -25,9 +25,11 @@ ownership language feature, standard ABI, package format or native runtime.
 ## Explicit limitations
 
 - String + String is supported only using a fixed, bounded process-lifetime
-  arena (8 MiB). No arbitrary substring slicing, mutation, interpolation,
-  formatting, StringBuilder, file/network input, FFI, heap allocation,
-  GC, refcounting, or borrow checker. Arena bytes are never reclaimed.
+  arena (8 MiB), with a fixed 4096-entry content-reuse lookup table.
+  This is **not reclamation**: previously allocated bytes are never freed.
+  No arbitrary substring slicing, mutation, interpolation, formatting,
+  StringBuilder, file/network input, FFI, heap allocation, GC, refcounting,
+  or borrow checker.
 - Rebinding `var name: String` swaps static references; it does NOT mutate
   the original immutable literal bytes.
 - `String` literal cannot contain NUL (current C11 null-terminated model);
@@ -35,11 +37,16 @@ ownership language feature, standard ABI, package format or native runtime.
 - Unpaired surrogate code points are rejected by the strict UTF-8 encoder.
 - `len` counts code points, not grapheme clusters or rendered glyphs.
 - Native String code-point indexing returns a view, not an owned copy.
-- Native String + String makes an immutable copy in a checked 8 MiB
+- Native String + String creates an immutable view in a checked 8 MiB
   process-lifetime arena; earlier views remain valid across calls and loops.
-  Concatenation with an empty String avoids allocation; other concatenations
-  consume their combined byte lengths until exit. Exhaustion exits with
-  runtime code 2. Binaries without concat do not reserve the arena.
+  Concatenation with an empty String avoids allocation. A fixed 4096-slot,
+  direct-mapped content cache can reuse previous arena bytes for **identical
+  output**, even when the operands have different split positions.
+  Hash and full byte comparisons are mandatory: collisions never make unequal
+  Strings compare equal. Replacing a cache entry does not free storage or
+  invalidate previous views. Cache misses consume combined byte lengths.
+  Exhaustion exits with runtime code 2. Binaries without concat do not
+  reserve the arena/cache.
 - All native strings ultimately come from known compiler-generated constants
   or checked copies in the arena.
   Never expose a pointer from unknown or untrusted C memory through this

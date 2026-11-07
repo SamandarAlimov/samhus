@@ -104,6 +104,7 @@ The native Value IR backend also supports immutable UTF-8 String literals,
 lexical String variables, String parameters/returns, content equality,
 println and code-point length. This is borrowed, static-lifetime storage
 with no owned heap Strings or general memory management. String + String
-uses a checked 8 MiB process-lifetime arena without reclamation. Arbitrary
+uses a checked 8 MiB process-lifetime arena with a 4096-slot direct-mapped
+content reuse cache. This deduplicates cache hits but never reclaims bytes. Arbitrary
 substring slicing and FFI remain unsupported. Checked
 code-point indexing is supported through a length-tracked borrowed view. See [NATIVE_STATIC_STRINGS.md](NATIVE_STATIC_STRINGS.md).

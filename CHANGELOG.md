@@ -6,6 +6,15 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — native String arena content reuse
+
+- Added a bounded 4096-slot direct-mapped intern cache in the native
+  concat arena, reusing identical UTF-8 result storage on cache hits.
+- Full hash + byte comparisons preserve correctness under hash collisions.
+- Prior String views survive cache replacement; novel results still consume
+  arena bytes until process exit. No GC, heap or general reclamation.
+- Added long-loop memory-pressure, collision and Unicode differential tests.
+
 ## Unreleased research — bounded native String concat
 
 - Value IR -> C11 supports String + String using an opt-in 8 MiB static arena.

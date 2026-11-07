@@ -386,9 +386,10 @@ def _emit_c(value: ValueProgram) -> str:
     lines += [
         "typedef struct { const unsigned char *data; size_t size; } sh_string;",
     ]
-    # Only binaries using String + String reserve arena storage.
-    # Returned views outlive function frames; allocation is cumulative
-    # and checked. This is not a permanent language memory model.
+    # Only binaries using String + String reserve arena and intern-cache
+    # storage. Repeated identical concatenations can reuse stable bytes.
+    # Evicting an index entry never frees backing bytes or invalidates views.
+    # This is not a permanent ownership or memory reclamation model.
     needs_concat = any(
         op.instruction.op == "BINARY"
         and op.instruction.arg == "+"
@@ -400,18 +401,46 @@ def _emit_c(value: ValueProgram) -> str:
     if needs_concat:
         lines += [
             "#define SH_STRING_ARENA_LIMIT ((size_t)8388608)",
+            "#define SH_STRING_INTERN_BUCKETS ((size_t)4096)",
             "static unsigned char sh_string_arena[SH_STRING_ARENA_LIMIT];",
             "static size_t sh_string_arena_used = 0;",
+            "typedef struct { uint64_t hash; size_t offset; size_t size; } sh_intern_entry;",
+            "static sh_intern_entry sh_string_intern[SH_STRING_INTERN_BUCKETS];",
+            "static uint64_t sh_hash_concat(sh_string left, sh_string right) {",
+            "    uint64_t hash = UINT64_C(14695981039346656037);",
+            "    for (size_t i = 0; i < left.size; ++i) {",
+            "        hash ^= (uint64_t)left.data[i];",
+            "        hash *= UINT64_C(1099511628211);",
+            "    }",
+            "    for (size_t i = 0; i < right.size; ++i) {",
+            "        hash ^= (uint64_t)right.data[i];",
+            "        hash *= UINT64_C(1099511628211);",
+            "    }",
+            "    return hash;",
+            "}",
             "static sh_string sh_concat(sh_string left, sh_string right) {",
             "    if (!left.size) return right;",
             "    if (!right.size) return left;",
+            "    if (left.size > SIZE_MAX - right.size)",
+            '        sh_fail("String arena budget exceeded (8388608 bytes)");',
+            "    size_t combined = left.size + right.size;",
+            "    uint64_t hash = sh_hash_concat(left, right);",
+            "    size_t bucket = (size_t)(hash % SH_STRING_INTERN_BUCKETS);",
+            "    sh_intern_entry *entry = &sh_string_intern[bucket];",
+            "    if (entry->size == combined && entry->hash == hash &&",
+            "        memcmp(sh_string_arena + entry->offset, left.data, left.size) == 0 &&",
+            "        memcmp(sh_string_arena + entry->offset + left.size,",
+            "               right.data, right.size) == 0)",
+            "        return (sh_string){sh_string_arena + entry->offset, combined};",
             "    size_t remaining = SH_STRING_ARENA_LIMIT - sh_string_arena_used;",
             "    if (left.size > remaining || right.size > remaining - left.size)",
             '        sh_fail("String arena budget exceeded (8388608 bytes)");',
-            "    size_t combined = left.size + right.size;",
             "    unsigned char *out = sh_string_arena + sh_string_arena_used;",
             "    memcpy(out, left.data, left.size);",
             "    memcpy(out + left.size, right.data, right.size);",
+            "    entry->hash = hash;",
+            "    entry->offset = sh_string_arena_used;",
+            "    entry->size = combined;",
             "    sh_string_arena_used += combined;",
             "    return (sh_string){out, combined};",
             "}",
