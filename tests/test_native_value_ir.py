@@ -126,9 +126,9 @@ class NativeValueIRTests(unittest.TestCase):
         self.native(program("var i:Int=0;while i<3 {println(i);i=i+1}"),
                     "0\n1\n2\n")
 
-    def test_reject_function_calls(self):
-        with self.assertRaisesRegex(SamhusError,"only main"):
-            self.emit("fn add(x:Int,y:Int)->Int{return x+y}\n"+program("println(add(1,2))"))
+    def test_user_function_calls_supported(self):
+        self.native("fn add(x:Int,y:Int)->Int{return x+y}\n"+
+                    program("println(add(19,23))"),"42\n")
 
     def test_reject_big_integer_literal(self):
         with self.assertRaisesRegex(SamhusError,"signed 64-bit"):
