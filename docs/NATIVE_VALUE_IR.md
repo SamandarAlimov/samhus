@@ -24,7 +24,9 @@ external C compiler. This is separate from the older AST-to-C prototype.
 ## Explicitly rejected
 
 - Dynamically typed function parameters/returns and unimplemented builtins.
-- Floats, Strings, Decimals, Null, Result, List, Map and any dynamic Any.
+- Floats, Decimals, Null, Result, List, Map and any dynamic Any.
+- String values are supported only for the restricted, length-tracked
+  UTF-8 literal/view/concat subset described below; not general String APIs.
 - Unsupported integer literals, unsupported opcodes or user-defined calls.
 
 Unsupported code fails during compilation with a source-positioned
