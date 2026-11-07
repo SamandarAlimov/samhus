@@ -49,7 +49,7 @@ class NativeStringConcatTests(unittest.TestCase):
 
     def test_unicode_index_length(self):
         self.native(main('let x="O‘z"+"bek 🌍🚀";println(x);println(len(x));'
-                         'println(x[8])'), "O‘zbek 🌍🚀\n10\n🚀\n")
+                         'println(x[8])'), "O‘zbek 🌍🚀\n9\n🚀\n")
 
     def test_empty_operands(self):
         self.native(main('println(""+"abc");println("abc"+"");println(""+"")'),
