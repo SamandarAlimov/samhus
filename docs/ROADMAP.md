@@ -150,3 +150,11 @@ native compilation, a sound typed subset, security and developer adoption.
 - [x] Standalone native executable tests and cross-platform smoke.
 - [ ] Typed user-function calls, ABI, stack/call depth and return handling.
 - [ ] General native data model and sound typed/SSA representation.
+
+## Native user function proof of concept (unreleased)
+
+- [x] Explicit typed arguments, Int/Bool/Unit return and forward calls.
+- [x] Call-local storage, recursion and 128-frame limit.
+- [x] CFG-aware scope handling for returns inside nested branches.
+- [ ] General native data types, FFI, cross-platform stable ABI.
+- [ ] Full typed SSA for local variables and memory-safe ownership model.

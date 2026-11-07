@@ -6,6 +6,15 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — native typed functions and guarded recursion
+
+- Typed Int/Bool parameters and Int/Bool/Unit return values on native IR.
+- Function prototypes, forward and recursive calls with call-local state.
+- CFG-edge lexical scope analysis for early returns.
+- 128-frame call guard; builtin invocation step counting.
+- Native/VM differential regressions and recursive function binary smoke.
+- Still unreleased 0.0.0.dev0, no official 0.0.1.
+
 ## Unreleased research — scoped locals and loops in native Value IR
 
 - Int/Bool local variables, lexical shadowing, assignment and nested while.

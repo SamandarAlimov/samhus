@@ -131,3 +131,8 @@ defined in QUALITY_GATES.md. Version labels do not certify security.
 Other Alsamos repositories are out of scope. No autonomous background work
 is implied by this document: implementation occurs when the assistant is
 actively invoked through available tools or an explicitly configured agent.
+
+## Native function milestone (research only)
+
+- [x] Restricted Value IR to C11 typed calls, returns, guarded recursion.
+- [ ] Full native language semantics, memory model and audited ABI.

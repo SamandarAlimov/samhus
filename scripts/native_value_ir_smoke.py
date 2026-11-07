@@ -9,6 +9,7 @@ def main():
     samples = [
         ("examples/native_value_ir.sahu", "14\nfalse\ntrue\n"),
         ("examples/native_value_ir_locals.sahu", "45\ntrue\n"),
+        ("examples/native_value_ir_functions.sahu", "720\n55\n"),
     ]
     for sample, expected in samples:
         vm = subprocess.run(
@@ -34,7 +35,7 @@ def main():
                 raise AssertionError(
                     f"Native {sample}: {(executed.returncode, executed.stdout, executed.stderr)!r}"
                 )
-    print("Native Value IR smoke PASS: standalone C11 binaries, loops, and PHIs match VM")
+    print("Native Value IR smoke PASS: C11 binaries, loops, PHIs and recursive calls match VM")
 
 
 if __name__ == "__main__":

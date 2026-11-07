@@ -212,3 +212,17 @@ This is not a production compiler, finalized semantics or security sandbox.
 - Updated cross-platform smoke to compile two distinct native examples.
 - Still no user function calls, arbitrary-precision native Int, typed SSA
   locals or audited memory model. Metadata remains 0.0.0.dev0.
+
+## 2026-11-07 — guarded native user functions (unreleased)
+
+- Added independent native Value IR C11 generation for explicitly typed
+  Int/Bool argument lists, Int/Bool/Unit returns and forward declarations.
+- Added call-local registers, user calls, early return and mutual recursion.
+- Enforced 128-function-depth limit and counted builtin calls toward the
+  fixed native 100000-step execution limit.
+- Replaced linear lexical scope scan with CFG-edge-aware binding analysis.
+- Added 24 function regression cases, including native executable-to-VM
+  comparisons, factorial/Fibonacci, mutual recursion and invalid signatures.
+- Added third native CI smoke example containing factorial and loop sum.
+- Full native data semantics, a stable ABI, and memory safety are unresolved;
+  version remains 0.0.0.dev0 and official 0.0.1 is not released.

@@ -6,7 +6,10 @@ external C compiler. This is separate from the older AST-to-C prototype.
 
 ## Supported syntax and behavior
 
-- Precisely one `fn main() -> Unit` function; no user functions.
+- Exactly one entry point `fn main() -> Unit`, plus other user functions
+  with explicitly annotated Int/Bool parameters and Int/Bool/Unit returns.
+- Forward calls, mutual recursion, early returns and Unit procedures.
+- Maximum 128 active native Samhus function frames, including main.
 - Int literals within signed 64-bit range and Bool literals.
 - Checked Int64 addition, subtraction, multiplication, division and negation.
 - Int comparisons/equality, Bool equality and !.
@@ -20,7 +23,7 @@ external C compiler. This is separate from the older AST-to-C prototype.
 
 ## Explicitly rejected
 
-- General user functions or calls other than println/assert.
+- Dynamically typed function parameters/returns and unimplemented builtins.
 - Floats, Strings, Decimals, Null, Result, List, Map and any dynamic Any.
 - Unsupported integer literals, unsupported opcodes or user-defined calls.
 
@@ -33,7 +36,8 @@ General Samhus Int supports arbitrary precision, whereas native IR
 Int is checked **signed 64-bit**. Integer overflow in arithmetic
 and division by zero cause a native process error rather than truncation.
 This limited native subset is not fully semantically equivalent to the
-interpreter for arbitrary-precision programs. Runtime TICK enforces a fixed 100000-step budget, including loop iterations.
+interpreter for arbitrary-precision programs. Native source TICK plus builtin and user-function invocation ticks enforce
+a fixed 100000-step budget. Recursive calls are also capped at 128 frames.
 There is no wall-clock, heap or operating-system resource isolation; this
 backend is NOT a sandbox.
 
@@ -51,6 +55,13 @@ A loop and local-variable example:
     ./native-loops
 
 It prints 45 and true on separate lines.
+
+To run functions, factorial recursion and loop aggregation:
+
+    python -m samhus native-ir examples/native_value_ir_functions.sahu -o native-fns
+    ./native-fns
+
+This prints 720 and 55 on separate lines.
 Python and an external C compiler are still required at *compile time*.
 The generated executable runs independently of Python.
 
@@ -68,14 +79,19 @@ reimplementing overflow logic.
 Lexically scoped variable declarations are mapped to unique, hoisted C
 cells. Assignments resolve to the correct cell; a loop declaration resets
 its cell on each iteration. These local variables are NOT SSA values.
-Source `TICK`s are emitted as calls to a fixed 100000-step guard.
+Source TICK operations, builtin calls and user-function entries count
+toward the fixed 100000-step budget. C prototypes are emitted before
+bodies, making forward and recursive calls possible. Every invocation
+has independent C local value cells and argument storage. Lexical bindings
+are resolved over CFG edges so early returns inside nested scopes do not
+cause false scope-underflow errors. This is not typed SSA or a stable ABI.
 
 This implementation is a bridge and proof of compiler structure, NOT
 a final production code generator or independently validated SSA.
 IR identity and type hints are still derived from Python bootstrap.
 
-Next objectives: variable SSA with proper scope/lifetime rules,
-typed functions, sound effects, general backend runtime, C ABI and
+Next objectives: full native data-model and typed SSA, sound effects,
+general backend runtime, FFI, C ABI and
 cross-platform production builds with fuzzing and sanitized tests.
 
 Version remains unreleased `0.0.0.dev0`; file extension is provisional.
