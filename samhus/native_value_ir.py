@@ -1,8 +1,8 @@
 """Experimental Value IR -> C11 backend for checked Int64/Bool and borrowed literals.
 
-String values are immutable references to static UTF-8 C literals, not heap
-objects. No dynamic String creation, concatenation, FFI or ownership model
-is provided. This is research-only and not full Samhus language parity.
+String values are bounded immutable slices into static UTF-8 C literals.
+No heap, GC, FFI or ownership model is provided. This is a research-only
+compiler-internal representation, not approved permanent Samhus semantics.
 """
 from .errors import SamhusError
 from .native_c import MAX_INT, PRELUDE
@@ -13,11 +13,11 @@ MAX_NATIVE_LITERAL_BYTES = 65536
 
 
 def _ctype(kind: str) -> str:
-    return "const char *" if kind == "String" else "int64_t"
+    return "sh_string" if kind == "String" else "int64_t"
 
 
 def _zero(kind: str) -> str:
-    return "NULL" if kind == "String" else "INT64_C(0)"
+    return "(sh_string){NULL, 0}" if kind == "String" else "INT64_C(0)"
 
 
 def _static_utf8_literal(value: str, instruction) -> str:
@@ -173,7 +173,7 @@ def _emit_one(function, signature, functions) -> list[str]:
                 "BRANCH_FALSE", "KEEP_FALSE", "KEEP_TRUE", "EXPECT_BOOL",
                 "SCOPE_IN", "SCOPE_OUT", "RETURN_VOID",
                 "LOAD", "DECLARE", "ASSIGN", "ASSERT_MUTABLE", "ASSERT_FRESH",
-                "RETURN",
+                "RETURN", "INDEX",
             }:
                 _fail(instr, f"unsupported instruction {instr.op!r}")
 
@@ -220,7 +220,11 @@ def _emit_one(function, signature, functions) -> list[str]:
                 lines.append(f"    {local_name} = {args[0]};")
             elif op_name == "PUSH":
                 if type(arg) is str:
-                    lines.append(f"    {dst} = {_static_utf8_literal(arg, inst)};")
+                    literal = _static_utf8_literal(arg, inst)
+                    lines.append(
+                        f"    {dst} = (sh_string){{(const unsigned char *){literal}, "
+                        f"sizeof({literal}) - 1}};"
+                    )
                 elif type(arg) is bool:
                     lines.append(f"    {dst} = INT64_C({1 if arg else 0});")
                 elif type(arg) is int and 0 <= arg <= MAX_INT:
@@ -247,10 +251,15 @@ def _emit_one(function, signature, functions) -> list[str]:
                 elif arg_types == ("Bool", "Bool") and arg in {"==", "!="}:
                     lines.append(f"    {dst} = ({args[0]} {arg} {args[1]});")
                 elif arg_types == ("String", "String") and arg in {"==", "!="}:
-                    comparator = "==" if arg == "==" else "!="
-                    lines.append(f"    {dst} = (strcmp({args[0]}, {args[1]}) {comparator} 0);")
+                    comparator = "sh_string_equal"
+                    comparison = f"{comparator}({args[0]}, {args[1]})"
+                    lines.append(f"    {dst} = {comparison if arg == '==' else '!' + comparison};")
                 else:
                     _fail(inst, f"unsupported binary {arg!r} on {arg_types}")
+            elif op_name == "INDEX":
+                if arg_types != ("String", "Int") or op.output_type != "String":
+                    _fail(inst, f"native INDEX supports String[Int], got {arg_types}")
+                lines.append(f"    {dst} = sh_utf8_index({args[0]}, {args[1]});")
             elif op_name == "CALL":
                 function_name, count = arg
                 # VM counts built-in invocations as execution steps. User
@@ -263,7 +272,7 @@ def _emit_one(function, signature, functions) -> list[str]:
                     elif arg_types == ("Bool",):
                         lines.append(f'    puts({args[0]} ? "true" : "false");')
                     elif arg_types == ("String",):
-                        lines.append(f"    puts({args[0]});")
+                        lines.append(f"    sh_print_string({args[0]});")
                     else:
                         _fail(inst, f"println does not support {arg_types}")
                 elif function_name == "assert" and count == 1 and arg_types == ("Bool",):
@@ -371,12 +380,45 @@ def _emit_c(value: ValueProgram) -> str:
         "static void sh_leave(void) { --sh_native_calls; }",
     ]
     lines += [
-        "static int64_t sh_utf8_len(const char *value) {",
+        "typedef struct { const unsigned char *data; size_t size; } sh_string;",
+        "static size_t sh_cp_size(unsigned char leading) {",
+        "    if (leading < 0x80u) return 1;",
+        "    if (leading >= 0xc2u && leading <= 0xdfu) return 2;",
+        "    if (leading >= 0xe0u && leading <= 0xefu) return 3;",
+        "    if (leading >= 0xf0u && leading <= 0xf4u) return 4;",
+        "    sh_fail(\"Invalid UTF-8 byte sequence\");",
+        "    return 0;",
+        "}",
+        "static int64_t sh_utf8_len(sh_string value) {",
         "    int64_t size = INT64_C(0);",
-        "    for (const unsigned char *p = (const unsigned char *)value; *p; ++p) {",
-        "        if ((*p & 0xc0u) != 0x80u) ++size;",
+        "    for (size_t i = 0; i < value.size;) {",
+        "        size_t step = sh_cp_size(value.data[i]);",
+        "        if (step > value.size - i) sh_fail(\"Truncated UTF-8\");",
+        "        i += step;",
+        "        ++size;",
         "    }",
         "    return size;",
+        "}",
+        "static sh_string sh_utf8_index(sh_string value, int64_t index) {",
+        "    if (index < 0) sh_fail(\"Index out of bounds\");",
+        "    int64_t position = INT64_C(0);",
+        "    for (size_t i = 0; i < value.size;) {",
+        "        size_t step = sh_cp_size(value.data[i]);",
+        "        if (step > value.size - i) sh_fail(\"Truncated UTF-8\");",
+        "        if (position == index) return (sh_string){value.data+i,step};",
+        "        i += step;",
+        "        ++position;",
+        "    }",
+        "    sh_fail(\"Index out of bounds\");",
+        "    return (sh_string){NULL,0};",
+        "}",
+        "static int sh_string_equal(sh_string left, sh_string right) {",
+        "    return left.size == right.size &&",
+        "        (!left.size || memcmp(left.data, right.data, left.size) == 0);",
+        "}",
+        "static void sh_print_string(sh_string value) {",
+        "    if (value.size) fwrite(value.data, 1, value.size, stdout);",
+        "    putchar(10);",
         "}",
     ]
     # Forward prototypes permit recursive and out-of-order user calls.
