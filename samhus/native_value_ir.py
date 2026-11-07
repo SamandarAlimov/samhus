@@ -1,12 +1,36 @@
-"""Experimental Value IR -> C11 backend for scoped Int64/Bool programs.
+"""Experimental Value IR -> C11 backend for checked Int64/Bool and borrowed literals.
 
-Handles basic local variables and loops without rewriting the source AST to
-C. Only the restricted typed Int/Bool subset is compiled; this remains a
-research backend, not full language parity, formal SSA or a safe sandbox.
+String values are immutable references to static UTF-8 C literals, not heap
+objects. No dynamic String creation, concatenation, FFI or ownership model
+is provided. This is research-only and not full Samhus language parity.
 """
 from .errors import SamhusError
 from .native_c import MAX_INT, PRELUDE
 from .parser import Program
+
+
+MAX_NATIVE_LITERAL_BYTES = 65536
+
+
+def _ctype(kind: str) -> str:
+    return "const char *" if kind == "String" else "int64_t"
+
+
+def _zero(kind: str) -> str:
+    return "NULL" if kind == "String" else "INT64_C(0)"
+
+
+def _static_utf8_literal(value: str, instruction) -> str:
+    """Octal escape every byte: safe against quote, backslash, and hex merging."""
+    if "\x00" in value:
+        _fail(instruction, "NUL byte in native String literal is unsupported")
+    try:
+        data = value.encode("utf-8", errors="strict")
+    except UnicodeError:
+        _fail(instruction, "native String literal must be valid UTF-8")
+    if len(data) > MAX_NATIVE_LITERAL_BYTES:
+        _fail(instruction, f"native String literal exceeds {MAX_NATIVE_LITERAL_BYTES} UTF-8 bytes")
+    return "\"" + "".join(f"\\{byte:03o}" for byte in data) + "\""
 from .value_ir import ValueProgram, compile_value_ir, verify_value_ir
 
 
@@ -26,7 +50,7 @@ def _symbol(identifier: str) -> str:
     return "shv_" + identifier[1:].replace(".", "_")
 
 
-def _emit_edge(lines: list[str], predecessor: str, target: str, blocks) -> None:
+def _emit_edge(lines: list[str], predecessor: str, target: str, blocks, types) -> None:
     """Parallel PHI moves on a CFG edge; staging avoids register swaps."""
     if target not in blocks:
         raise ValueError("Invalid native Value IR successor")
@@ -38,8 +62,10 @@ def _emit_edge(lines: list[str], predecessor: str, target: str, blocks) -> None:
             raise ValueError("Invalid native Value IR PHI predecessor")
         incoming.append((phi.result, matched[0]))
     lines.append("    {")
-    for index, (_, source) in enumerate(incoming):
-        lines.append(f"        int64_t sh_move_{index} = {_symbol(source)};")
+    for index, (destination, source) in enumerate(incoming):
+        if types[source] != types[destination]:
+            raise ValueError("Native Value IR PHI requires matching source/target types")
+        lines.append(f"        {_ctype(types[destination])} sh_move_{index} = {_symbol(source)};")
     for index, (destination, _) in enumerate(incoming):
         lines.append(f"        {_symbol(destination)} = sh_move_{index};")
     lines.append(f"        goto shb_{target};")
@@ -81,7 +107,7 @@ def _collect_locals(function, types, signature):
                     if variable_name in scopes[-1]:
                         _fail(instruction, f"duplicate declaration {variable_name!r}")
                     kind = annotation or types[operation.inputs[0]]
-                    if kind not in {"Int", "Bool"}:
+                    if kind not in {"Int", "Bool", "String"}:
                         _fail(instruction, f"unsupported declared type {kind!r}")
                     cell = (f"sh_local_{operation.offset}", kind, mutable)
                     scopes[-1][variable_name] = cell
@@ -130,10 +156,10 @@ def _emit_one(function, signature, functions) -> list[str]:
                 types[op.output] = op.output_type
 
     resolved, variables = _collect_locals(function, types, signature)
-    valid = {"Int", "Bool", "Unit"}
+    valid = {"Int", "Bool", "Unit", "String"}
     for block in function.blocks:
         for phi in block.phis:
-            if phi.type_name not in {"Int", "Bool"}:
+            if phi.type_name not in {"Int", "Bool", "String"}:
                 raise SamhusError(
                     f"Native Value IR subset: unsupported PHI type {phi.type_name}",
                     signature.token.line, signature.token.column,
@@ -153,17 +179,21 @@ def _emit_one(function, signature, functions) -> list[str]:
 
     # C locals per invocation prevent recursive frames sharing value cells.
     result_type = signature.return_type
-    result_c = "void" if result_type == "Unit" else "int64_t"
-    parameters = ", ".join(f"int64_t sh_arg_{i}" for i in range(len(signature.params))) or "void"
+    result_c = "void" if result_type == "Unit" else _ctype(result_type)
+    parameters = ", ".join(f"{_ctype(kind)} sh_arg_{i}" for i, kind in enumerate(signature.param_types)) or "void"
     lines = [
         f"static {result_c} {functions[signature.name][0]}({parameters}) {{",
         "    sh_enter();",
         "    sh_tick();",
     ]
     for symbol in sorted(types):
-        lines.append(f"    int64_t {_symbol(symbol)} = INT64_C(0);")
+        lines.append(f"    {_ctype(types[symbol])} {_symbol(symbol)} = {_zero(types[symbol])};")
     for local_name in variables:
-        lines.append(f"    int64_t {local_name} = INT64_C(0);")
+        # Each declaration offset has a single well-typed C cell.
+        declaration = next(
+            binding for binding in resolved.values() if binding[0] == local_name
+        )
+        lines.append(f"    {_ctype(declaration[1])} {local_name} = {_zero(declaration[1])};")
     lines.append(f"    goto shb_{function.blocks[0].label};")
     for block in function.blocks:
         lines.append(f"shb_{block.label}: ;")
@@ -189,7 +219,9 @@ def _emit_one(function, signature, functions) -> list[str]:
                     _fail(inst, f"ASSIGN type mismatch for {arg!r}")
                 lines.append(f"    {local_name} = {args[0]};")
             elif op_name == "PUSH":
-                if type(arg) is bool:
+                if type(arg) is str:
+                    lines.append(f"    {dst} = {_static_utf8_literal(arg, inst)};")
+                elif type(arg) is bool:
                     lines.append(f"    {dst} = INT64_C({1 if arg else 0});")
                 elif type(arg) is int and 0 <= arg <= MAX_INT:
                     lines.append(f"    {dst} = INT64_C({arg});")
@@ -214,23 +246,31 @@ def _emit_one(function, signature, functions) -> list[str]:
                         _fail(inst, f"unsupported Int binary operator {arg!r}")
                 elif arg_types == ("Bool", "Bool") and arg in {"==", "!="}:
                     lines.append(f"    {dst} = ({args[0]} {arg} {args[1]});")
+                elif arg_types == ("String", "String") and arg in {"==", "!="}:
+                    comparator = "==" if arg == "==" else "!="
+                    lines.append(f"    {dst} = (strcmp({args[0]}, {args[1]}) {comparator} 0);")
                 else:
                     _fail(inst, f"unsupported binary {arg!r} on {arg_types}")
             elif op_name == "CALL":
                 function_name, count = arg
                 # VM counts built-in invocations as execution steps. User
                 # calls tick in sh_enter() at the callee's entry instead.
-                if function_name in {"println", "assert"}:
+                if function_name in {"println", "assert", "len"}:
                     lines.append("    sh_tick();")
                 if function_name == "println" and count == 1:
                     if arg_types == ("Int",):
                         lines.append(f'    printf("%" PRId64 "\\n", {args[0]});')
                     elif arg_types == ("Bool",):
                         lines.append(f'    puts({args[0]} ? "true" : "false");')
+                    elif arg_types == ("String",):
+                        lines.append(f"    puts({args[0]});")
                     else:
                         _fail(inst, f"println does not support {arg_types}")
                 elif function_name == "assert" and count == 1 and arg_types == ("Bool",):
                     lines.append(f'    if (!{args[0]}) sh_fail("Assertion failed");')
+                elif function_name == "len" and count == 1 and arg_types == ("String",):
+                    lines.append(f"    {dst} = sh_utf8_len({args[0]});")
+                    continue
                 elif function_name in functions:
                     target, target_sig = functions[function_name]
                     expected = target_sig.param_types
@@ -242,7 +282,7 @@ def _emit_one(function, signature, functions) -> list[str]:
                         if op.output_type != "Unit":
                             _fail(inst, f"bad Unit result type from {function_name!r}")
                         lines.append(f"    {target}({argument_list});")
-                        lines.append(f"    {dst} = INT64_C(0);")
+                        lines.append(f"    {dst} = {_zero(op.output_type)};")
                     elif op.output_type == target_sig.return_type:
                         lines.append(f"    {dst} = {target}({argument_list});")
                     else:
@@ -267,12 +307,12 @@ def _emit_one(function, signature, functions) -> list[str]:
                     condition = args[0] if op_name == "KEEP_TRUE" else f"!{args[0]}"
                 successor = next((label for label in block.successors if label != target),target)
                 lines.append(f"    if ({condition}) {{")
-                _emit_edge(lines, block.label, target, blocks)
+                _emit_edge(lines, block.label, target, blocks, types)
                 lines.append("    } else {")
-                _emit_edge(lines, block.label, successor, blocks)
+                _emit_edge(lines, block.label, successor, blocks, types)
                 lines.append("    }")
             elif op_name == "JUMP":
-                _emit_edge(lines, block.label, arg, blocks)
+                _emit_edge(lines, block.label, arg, blocks, types)
             elif op_name == "RETURN":
                 if arg_types != (result_type,):
                     _fail(inst, f"return mismatch: expected {result_type}, got {arg_types}")
@@ -295,7 +335,7 @@ def _emit_one(function, signature, functions) -> list[str]:
         if last not in {"JUMP", "BRANCH_FALSE", "KEEP_TRUE", "KEEP_FALSE", "RETURN", "RETURN_VOID"}:
             if len(block.successors) != 1:
                 raise ValueError("Invalid native Value IR fallthrough")
-            _emit_edge(lines, block.label, block.successors[0], blocks)
+            _emit_edge(lines, block.label, block.successors[0], blocks, types)
     lines.append("}")
     return lines
 
@@ -310,11 +350,11 @@ def _emit_c(value: ValueProgram) -> str:
                           token.line, token.column)
     functions = {}
     for idx, fn in enumerate(value.cfg.functions):
-        if (fn.return_type not in {"Int", "Bool", "Unit"}
+        if (fn.return_type not in {"Int", "Bool", "String", "Unit"}
                 or len(fn.params) != len(fn.param_types)
-                or any(kind not in {"Int", "Bool"} for kind in fn.param_types)):
+                or any(kind not in {"Int", "Bool", "String"} for kind in fn.param_types)):
             raise SamhusError(
-                "Native Value IR subset: functions require explicit Int/Bool parameters and Int/Bool/Unit return",
+                "Native Value IR subset: functions require explicit Int/Bool/String parameters and Int/Bool/String/Unit return",
                 fn.token.line, fn.token.column,
             )
         functions[fn.name] = ("sh_fn_main" if fn.name == "main" else f"sh_fn_{idx}", fn)
@@ -330,10 +370,19 @@ def _emit_c(value: ValueProgram) -> str:
         "}",
         "static void sh_leave(void) { --sh_native_calls; }",
     ]
+    lines += [
+        "static int64_t sh_utf8_len(const char *value) {",
+        "    int64_t size = INT64_C(0);",
+        "    for (const unsigned char *p = (const unsigned char *)value; *p; ++p) {",
+        "        if ((*p & 0xc0u) != 0x80u) ++size;",
+        "    }",
+        "    return size;",
+        "}",
+    ]
     # Forward prototypes permit recursive and out-of-order user calls.
     for fn in value.cfg.functions:
-        return_c = "void" if fn.return_type == "Unit" else "int64_t"
-        params_c = ", ".join("int64_t" for _ in fn.params) or "void"
+        return_c = "void" if fn.return_type == "Unit" else _ctype(fn.return_type)
+        params_c = ", ".join(_ctype(kind) for kind in fn.param_types) or "void"
         lines.append(f"static {return_c} {functions[fn.name][0]}({params_c});")
     for fn in value.functions:
         lines.extend(_emit_one(fn, signatures[fn.name], functions))
@@ -342,5 +391,5 @@ def _emit_c(value: ValueProgram) -> str:
 
 
 def emit_value_ir_c(program: Program) -> str:
-    """Compile checked Int/Bool functions, locals and flow to standalone C11."""
+    """Compile restricted Int64/Bool/static String programs to standalone C11."""
     return _emit_c(compile_value_ir(program))
