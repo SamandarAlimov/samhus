@@ -1,4 +1,5 @@
 """Cross-platform IR -> C11 end-to-end tests on both standalone samples."""
+import os
 import subprocess
 import sys
 import tempfile
@@ -12,10 +13,15 @@ def main():
         ("examples/native_value_ir_functions.sahu", "720\n55\n"),
         ("examples/native_value_ir_strings.sahu", "Assalomu alaykum, Samhus!\nToshkent\n11\ntrue\n🌍🚀\n"),
     ]
+    vm_env = {
+        **os.environ,
+        "PYTHONUTF8": "1",
+        "PYTHONIOENCODING": "utf-8",
+    }
     for sample, expected in samples:
         vm = subprocess.run(
             [sys.executable, "-m", "samhus", "run", sample, "--backend", "vm", "--typecheck"],
-            text=True, capture_output=True, encoding="utf-8",
+            text=True, capture_output=True, encoding="utf-8", env=vm_env,
         )
         if vm.returncode:
             raise RuntimeError(f"VM failed for {sample}: {vm.stderr}")
