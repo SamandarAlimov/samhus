@@ -65,7 +65,9 @@ class OwnershipIRTests(unittest.TestCase):
         self.assertTrue(any("owned/borrowed ABI" in b for b in report.blockers))
 
     def test_unused_string_temporary_has_drop_obligation(self):
-        actions = self.actions(main('"a"+"b"'))
+        # Only calls are permitted as expression statements in Samhus.
+        source = 'fn make()->String{return "a"+"b"}\n' + main('make()')
+        actions = self.actions(source)
         self.assertIn("DROP_UNUSED_TEMP", actions)
 
     def test_boolean_phi_is_not_string_ownership_phi(self):
