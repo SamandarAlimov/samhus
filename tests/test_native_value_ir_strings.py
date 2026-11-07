@@ -9,6 +9,7 @@ from pathlib import Path
 from samhus import SamhusError, parse_program, run_to_string
 from samhus.native_value_ir import MAX_NATIVE_LITERAL_BYTES, emit_value_ir_c, _static_utf8_literal
 from samhus.lexer import Token
+from samhus.bytecode import Instruction
 
 CC = next((name for name in ("cc", "gcc", "clang") if shutil.which(name)), None)
 
@@ -162,7 +163,7 @@ class NativeStringsTests(unittest.TestCase):
     def test_no_nul_string(self):
         token = Token("STRING", "", 1, 1)
         with self.assertRaisesRegex(SamhusError, "NUL byte"):
-            _static_utf8_literal("hi" + chr(0) + "bye", token)
+            _static_utf8_literal("hi" + chr(0) + "bye", Instruction("PUSH", "", token))
 
     def test_native_literal_byte_limit(self):
         oversized = "A" * (MAX_NATIVE_LITERAL_BYTES + 1)
