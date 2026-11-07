@@ -240,3 +240,17 @@ This is not a production compiler, finalized semantics or security sandbox.
   dynamic operations, plus native-vs-VM executable smoke.
 - No dynamic String allocation, GC, ownership/borrow checker or FFI;
   permanent memory model decision remains open; no 0.0.1 release.
+
+## 2026-11-07 — checked UTF-8 code-point String views
+
+- Changed experimental C11 native IR String register/storage representation
+  from null-terminated const-char pointer to borrowed (data, byte-length) struct.
+- Added `String[Int]` with Unicode code-point indexing; checks negative and
+  out-of-bounds indices at runtime and returns a bounded non-owning view.
+- Updated native String equality to length-aware memcmp, printing to
+  length-bounded fwrite, and len to code-point scan of the bounded view.
+- Added regression cases covering Unicode, emoji, nested indexing, string
+  returns and loops, failed bounds, plus 80 deterministic index cases.
+- No allocator, owned Strings, dynamic concat or general slice semantics;
+  source extension and permanent memory model still unapproved.
+- Package continues to be unreleased `0.0.0.dev0`.

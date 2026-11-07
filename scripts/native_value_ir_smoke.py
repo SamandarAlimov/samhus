@@ -12,6 +12,7 @@ def main():
         ("examples/native_value_ir_locals.sahu", "45\ntrue\n"),
         ("examples/native_value_ir_functions.sahu", "720\n55\n"),
         ("examples/native_value_ir_strings.sahu", "Assalomu alaykum, Samhus!\nToshkent\n11\ntrue\n🌍🚀\n"),
+        ("examples/native_value_ir_slices.sahu", "S\n🚀\n1\ntrue\n"),
     ]
     vm_env = {
         **os.environ,
@@ -42,7 +43,7 @@ def main():
                 raise AssertionError(
                     f"Native {sample}: {(executed.returncode, executed.stdout, executed.stderr)!r}"
                 )
-    print("Native Value IR smoke PASS: C11 binaries, loops, functions and UTF-8 Strings match VM")
+    print("Native Value IR smoke PASS: C11 binaries, loops, functions, bounded UTF-8 views match VM")
 
 
 if __name__ == "__main__":

@@ -6,6 +6,13 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — length-tracked native UTF-8 String views
+
+- Bounded `String[Int]` Unicode code-point indexing on borrowed static literals.
+- C11 pointer+byte-length view, checked index errors and safe view returns.
+- Length-aware equality/print/len; Unicode differential tests and native smoke.
+- No heap, concatenation or permanent ownership decision; still 0.0.0.dev0.
+
 ## Unreleased research — borrowed native UTF-8 literal Strings
 
 - Static-lifetime UTF-8 `String` literals, locals, returns and typed calls.

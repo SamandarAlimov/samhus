@@ -166,3 +166,12 @@ native compilation, a sound typed subset, security and developer adoption.
 - [x] Native String println/len semantics with Unicode codepoint test suite.
 - [ ] Owned, length-prefixed strings and checked allocator with cleanup.
 - [ ] Memory model governance, FFI borrowing rules and independent fuzzing.
+
+## Bounded native UTF-8 String-view experiment
+
+- [x] Native C11 pointer+length representation for static-backed String views.
+- [x] Checked Unicode code-point indexing through String[Int], no heap allocation.
+- [x] Length-aware String comparison, printing and len on nested views.
+- [x] Negative/bounds tests, generated Unicode workloads and native-VM parity.
+- [ ] General substrings, owned String construction, heap resource budgets.
+- [ ] Safe FFI lifetime contracts, memory model decision and fuzzing.

@@ -102,4 +102,5 @@ The native Value IR backend also supports immutable UTF-8 String literals,
 lexical String variables, String parameters/returns, content equality,
 println and code-point length. This is borrowed, static-lifetime storage
 with no owned heap Strings or general memory management. Dynamic concat,
-indexing and FFI remain unsupported. See [NATIVE_STATIC_STRINGS.md](NATIVE_STATIC_STRINGS.md).
+arbitrary substring slicing and FFI remain unsupported. Checked
+code-point indexing is supported through a length-tracked borrowed view. See [NATIVE_STATIC_STRINGS.md](NATIVE_STATIC_STRINGS.md).

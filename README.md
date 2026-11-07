@@ -30,14 +30,16 @@ are verified and authorized. The existing Git history is preserved.
 ## Borrowed native UTF-8 String subset — experimental
 
 Independent Value IR -> C11 compilation now supports `String` values
-borrowed from compiler-created **static UTF-8 literals**, with `println`,
-`len` (code points), content equality, String locals/assignments and typed
-function arguments/returns. No heap, GC, dynamic concat, FFI or String
-indexing is implemented. Source literals with NUL or over 65536 UTF-8
+borrowed from compiler-created **static UTF-8 literals**, represented as
+**pointer + byte length**, with `println`, `len` (Unicode code points),
+content equality, checked `String[Int]` code-point indexing and typed
+locals/functions. No heap, GC, dynamic concat, general slicing or FFI is
+implemented. Source literals with NUL or over 65536 UTF-8
 bytes are deliberately rejected. This is a temporary implementation
 approach, not an approved Samhus memory model.
 
     python -m samhus native-ir examples/native_value_ir_strings.sahu -o native-strings
+    python -m samhus native-ir examples/native_value_ir_slices.sahu -o native-slices
 
 See [bounded native String semantics](docs/NATIVE_STATIC_STRINGS.md).
 

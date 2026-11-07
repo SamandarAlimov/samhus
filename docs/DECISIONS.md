@@ -42,3 +42,8 @@ prototype behavior into a permanent specification.
 Value IR-to-C11 backend now uses `const char*` borrowed references to
 compiler-created, static-lifetime UTF-8 literals. This does not decide
 the Samhus memory/ownership model, or allow pointer-based FFI.
+
+**Research note (2026-11-07, not founder-approved):** native Value IR uses
+compiler-managed static UTF-8 storage and bounded borrowed views (data pointer
++ length). This is a reversible internal prototype, **not** the approved
+Samhus ownership, borrowing or FFI design.

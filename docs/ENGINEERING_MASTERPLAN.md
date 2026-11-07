@@ -141,3 +141,8 @@ actively invoked through available tools or an explicitly configured agent.
 
 - [x] Static-lifetime borrowed UTF-8 literals: String calls, len, equality.
 - [ ] Sound owned String/heap model, allocator/resource budgets and safe FFI.
+
+## Native String bounds research
+
+- [x] Length-tracked borrowed UTF-8 views and bounds-checked code-point index.
+- [ ] Finalize memory ownership/FFI rules only with explicit founder approval.

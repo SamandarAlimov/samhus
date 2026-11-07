@@ -1,4 +1,4 @@
-# Samhus native Value IR: borrowed static UTF-8 Strings
+# Samhus native Value IR: borrowed length-tracked UTF-8 String views
 
 Research status: **unreleased `0.0.0.dev0`**, not an approved memory model,
 ownership language feature, standard ABI, package format or native runtime.
@@ -6,11 +6,17 @@ ownership language feature, standard ABI, package format or native runtime.
 ## This milestone implements
 
 - `String` literals mapped to immutable, static-lifetime UTF-8 bytes in C11.
+- Native String is an internal struct of pointer plus exact byte length;
+  indexing returns a bounded, non-owning view of one Unicode code point.
+- `String[Int]` validates negative and overlong indices at runtime, without
+  allocation or reading beyond the backing literal.
 - Safe fixed-width octal escaping prevents C string escape injection.
 - `let` and `var` String storage, assignments and lexical shadowing.
 - Explicitly typed String function parameters and String return values.
-- String `==`/`!=` compare **contents** via `strcmp`, never pointers.
-- `println(String)` with `puts`, not attacker-controlled printf format text.
+- String `==`/`!=` compare byte lengths plus content via `memcmp`;
+  neither pointer identity nor null-termination is used for equality.
+- `println(String)` uses length-bounded `fwrite` plus a newline, never
+  attacker-controlled printf formatting or null-termination assumptions.
 - `len(String)` counts Unicode code points (matching Python-hosted runtime)
   by counting UTF-8 leading bytes; valid UTF-8 is guaranteed for literals.
 - Static String values may pass through nested and recursive functions;
@@ -18,7 +24,7 @@ ownership language feature, standard ABI, package format or native runtime.
 
 ## Explicit limitations
 
-- No String concatenation, slicing/indexing, mutation of string contents,
+- No String concatenation, arbitrary substring slicing, mutation of contents,
   interpolation, formatting, dynamic strings, StringBuilder, file/network
   input, FFI, heap allocation, GC, refcounting or borrow checker.
 - Rebinding `var name: String` swaps static references; it does NOT mutate
@@ -27,7 +33,8 @@ ownership language feature, standard ABI, package format or native runtime.
   payload is limited to 65536 UTF-8 bytes per literal.
 - Unpaired surrogate code points are rejected by the strict UTF-8 encoder.
 - `len` counts code points, not grapheme clusters or rendered glyphs.
-- All native strings come from known compiler-generated constants.
+- Native String code-point indexing returns a view, not an owned copy.
+- All native strings ultimately come from known compiler-generated constants.
   Never expose a pointer from unknown or untrusted C memory through this
   path without introducing lifetime/length validation and ownership rules.
 - No guarantee of an independently compiled native Samhus toolchain.
@@ -37,6 +44,7 @@ ownership language feature, standard ABI, package format or native runtime.
 ## CLI
 
     python -m samhus typecheck examples/native_value_ir_strings.sahu
+    python -m samhus native-ir examples/native_value_ir_slices.sahu -o native-slices
     python -m samhus emit-ir-c examples/native_value_ir_strings.sahu
     python -m samhus native-ir examples/native_value_ir_strings.sahu -o samhus-strings
     ./samhus-strings
@@ -57,7 +65,7 @@ on Windows, macOS and Linux under Python 3.11 and 3.13.
 
 Implement an owned, **length-tracked** String representation with checked
 allocation and cleanup, explicit FFI contracts and resource bounds.
-Only after that should dynamic concat, slicing and external UTF-8 strings
+Only after that should dynamic concat, arbitrary slicing and external UTF-8 strings
 be considered. This would require owner approval for the permanent
 language-level memory model. The current static-lifetime representation
 is an internal prototype choice, not a ratified Samhus rule.
