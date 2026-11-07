@@ -1,0 +1,13 @@
+// Static UTF-8 String prototype: no heap, concat or FFI.
+fn greet(name: String) -> String {
+    return name
+}
+
+fn main() -> Unit {
+    let city: String = "Toshkent"
+    println(greet("Assalomu alaykum, Samhus!"))
+    println(city)
+    println(len("O‘zbekiston"))
+    println("Samhus" == "Samhus")
+    println("🌍🚀")
+}
