@@ -6,6 +6,13 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — bounded native String concat
+
+- Value IR -> C11 supports String + String using an opt-in 8 MiB static arena.
+- Checked cumulative budget, stable immutable views; no malloc/free or GC.
+- Added cross-backend Unicode, loop, call, indexing and exhaustion tests.
+- No approved memory model, FFI, native ABI or official release.
+
 ## Unreleased research — length-tracked native UTF-8 String views
 
 - Bounded `String[Int]` Unicode code-point indexing on borrowed static literals.

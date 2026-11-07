@@ -1,0 +1,11 @@
+// Research-only: native String + String uses a checked 8 MiB static arena.
+fn greeting(name: String) -> String {
+    return "Assalomu alaykum, " + name + "!";
+}
+
+fn main() -> Unit {
+    let message: String = greeting("Samhus 🌍");
+    println(message);
+    println(len(message));
+    println(message[len(message) - 1]);
+}
