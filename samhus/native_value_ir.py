@@ -48,57 +48,75 @@ def _emit_edge(lines: list[str], predecessor: str, target: str, blocks) -> None:
 
 
 def _collect_locals(function, types, signature):
-    """Resolve locals using bytecode's lexical SCOPE_IN/OUT order.
+    """Resolve lexical bindings per CFG edge, not textual block order.
 
-    An individual source DECLARE has a unique hoisted C cell, even if the
-    variable is shadowed. Cells are overwritten on each loop iteration.
-    This deliberately does not claim mutable locals have become SSA values.
+    Branches that return early do not necessarily emit reachable SCOPE_OUT
+    instructions. CFG forward analysis handles those exits and checks that
+    all other control-flow joins agree on their live lexical bindings.
     """
-    scopes = [{
+    blocks = {block.label: block for block in function.blocks}
+    parameters = {
         name: (f"sh_arg_{i}", kind, False)
         for i, (name, kind) in enumerate(zip(signature.params, signature.param_types))
-    }]
+    }
+    pending = [function.blocks[0].label]
+    in_state = {pending[0]: (parameters,)}
     resolved = {}
-    variables = []
-    for block in function.blocks:
-        for operation in block.operations:
+    declared = set()
+    while pending:
+        name = pending.pop()
+        scopes = [dict(scope) for scope in in_state[name]]
+        for operation in blocks[name].operations:
             instruction = operation.instruction
             op, arg = instruction.op, instruction.arg
             if op == "SCOPE_IN":
                 scopes.append({})
             elif op == "SCOPE_OUT":
-                if len(scopes) <= 1:
+                if len(scopes) == 1:
                     _fail(instruction, "scope underflow")
                 scopes.pop()
-            elif op == "DECLARE":
-                name, mutable, annotation = arg
-                if name in scopes[-1]:
-                    _fail(instruction, f"duplicate declaration {name!r}")
-                kind = annotation or types[operation.inputs[0]]
-                if kind not in {"Int", "Bool"}:
-                    _fail(instruction, f"unsupported declared type {kind!r}")
-                identifier = f"sh_local_{len(variables)}"
-                scopes[-1][name] = (identifier, kind, mutable)
-                variables.append(identifier)
-                resolved[operation.offset] = scopes[-1][name]
-            elif op in {"LOAD", "ASSIGN", "ASSERT_MUTABLE", "ASSERT_FRESH"}:
-                if op == "ASSERT_FRESH":
+            elif op in {"DECLARE", "LOAD", "ASSIGN", "ASSERT_MUTABLE", "ASSERT_FRESH"}:
+                if op == "DECLARE":
+                    variable_name, mutable, annotation = arg
+                    if variable_name in scopes[-1]:
+                        _fail(instruction, f"duplicate declaration {variable_name!r}")
+                    kind = annotation or types[operation.inputs[0]]
+                    if kind not in {"Int", "Bool"}:
+                        _fail(instruction, f"unsupported declared type {kind!r}")
+                    cell = (f"sh_local_{operation.offset}", kind, mutable)
+                    scopes[-1][variable_name] = cell
+                    declared.add(cell[0])
+                    binding = cell
+                elif op == "ASSERT_FRESH":
                     if arg in scopes[-1]:
                         _fail(instruction, f"duplicate declaration {arg!r}")
                     continue
-                binding = next(
-                    (scope[arg] for scope in reversed(scopes) if arg in scope), None
-                )
-                if binding is None:
-                    _fail(instruction, f"undefined variable {arg!r}")
-                if op in {"ASSIGN", "ASSERT_MUTABLE"} and not binding[2]:
-                    _fail(instruction, f"cannot assign to immutable variable {arg!r}")
+                else:
+                    binding = next(
+                        (scope[arg] for scope in reversed(scopes) if arg in scope),
+                        None,
+                    )
+                    if binding is None:
+                        _fail(instruction, f"undefined variable {arg!r}")
+                    if op in {"ASSIGN", "ASSERT_MUTABLE"} and not binding[2]:
+                        _fail(instruction, f"cannot assign to immutable variable {arg!r}")
+                previous = resolved.get(operation.offset)
+                if previous is not None and previous != binding:
+                    _fail(instruction, "incompatible lexical binding across CFG paths")
                 resolved[operation.offset] = binding
-    # A malformed CFG with partially lowered lexical scopes is rejected;
-    # approved main()->Unit programs are expected to close all scopes.
-    if len(scopes) != 1:
-        raise ValueError("Native Value IR has unbalanced lexical scopes")
-    return resolved, variables
+        successor_state = tuple(scopes)
+        for label in blocks[name].successors:
+            previous = in_state.get(label)
+            if previous is None:
+                in_state[label] = successor_state
+                pending.append(label)
+            elif previous != successor_state:
+                raise SamhusError(
+                    "Native Value IR subset: conflicting lexical scopes at control-flow join",
+                    signature.token.line, signature.token.column,
+                )
+    return resolved, sorted(declared)
+
 
 def _emit_one(function, signature, functions) -> list[str]:
     """Translate a verified Value IR function; all temps are call-local."""
