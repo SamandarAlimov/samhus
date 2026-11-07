@@ -5,7 +5,7 @@ Status: **research**, not owner-approved semantics, not a selected ABI/runtime.
 ## What is safe today
 
 The Value IR -> C11 backend represents String as immutable
-\`(const byte *, byte_length)\` views. Compiler literals live for the process.
+`(const byte *, byte_length)` views. Compiler literals live for the process.
 Concatenations are stored in a statically bounded **8 MiB** arena, so views
 to them cannot dangle while the process is alive. An optional 4096-slot
 content-reuse cache can return a previously allocated identical view.
