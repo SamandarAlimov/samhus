@@ -27,6 +27,15 @@ the package/language version for every added feature. The first `0.0.1`
 tag is reserved until the gates in [Release policy](docs/RELEASE_POLICY.md)
 are verified and authorized. The existing Git history is preserved.
 
+## Read-only ownership obligations analysis (no native lowering)
+
+Inspect possible String retain, transfer, slice and drop obligations over
+verified stack Value IR using `python -m samhus ir
+examples/native_value_ir_concat.sahu --ownership`. This tool highlights
+unresolved local scope, call ABI and control-flow lifetime questions;
+it **never emits or enables automatic memory reclamation**.
+See [ownership IR limits](docs/OWNERSHIP_IR.md).
+
 ## Isolated owned String C11 experiment (not compiler-integrated)
 
 `runtime/owned_string.{h,c}` is an independent **manual C11 API**
