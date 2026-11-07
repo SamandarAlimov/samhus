@@ -37,3 +37,8 @@ Only owner-approved decisions are final. Technical prototypes are reversible.
 To confirm a decision, record the founder's explicit choice, the date,
 the rationale, and any compatibility impact. Do not silently promote
 prototype behavior into a permanent specification.
+
+**Research note, not a founder decision (2026-11-07):** the restricted
+Value IR-to-C11 backend now uses `const char*` borrowed references to
+compiler-created, static-lifetime UTF-8 literals. This does not decide
+the Samhus memory/ownership model, or allow pointer-based FFI.

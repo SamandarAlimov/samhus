@@ -27,6 +27,20 @@ the package/language version for every added feature. The first `0.0.1`
 tag is reserved until the gates in [Release policy](docs/RELEASE_POLICY.md)
 are verified and authorized. The existing Git history is preserved.
 
+## Borrowed native UTF-8 String subset — experimental
+
+Independent Value IR -> C11 compilation now supports `String` values
+borrowed from compiler-created **static UTF-8 literals**, with `println`,
+`len` (code points), content equality, String locals/assignments and typed
+function arguments/returns. No heap, GC, dynamic concat, FFI or String
+indexing is implemented. Source literals with NUL or over 65536 UTF-8
+bytes are deliberately rejected. This is a temporary implementation
+approach, not an approved Samhus memory model.
+
+    python -m samhus native-ir examples/native_value_ir_strings.sahu -o native-strings
+
+See [bounded native String semantics](docs/NATIVE_STATIC_STRINGS.md).
+
 ## Tiny native Value IR backend — experimental
 
 An **independent Value IR -> C11 code generation path** is available
@@ -37,7 +51,9 @@ uses checked signed-64-bit helpers and produces Python-independent
 executables via an external C compiler. Explicitly typed **user functions,
 Int/Bool parameters, Int/Bool/Unit return values, nested calls and recursion**
 now work in this subset. The native runtime has a 128-frame call-depth
-guard. Float, String, Map/List, Decimal and Result are **not supported**.
+guard. Float, Map/List, Decimal and Result are **not supported**.
+Static UTF-8 `String` literals, operations and borrowed function values
+are supported only in the separately documented restricted subset.
 There is a fixed 100000-step native loop/statement budget, but no OS sandbox.
 
     python -m samhus emit-ir-c examples/native_value_ir.sahu

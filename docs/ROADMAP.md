@@ -158,3 +158,11 @@ native compilation, a sound typed subset, security and developer adoption.
 - [x] CFG-aware scope handling for returns inside nested branches.
 - [ ] General native data types, FFI, cross-platform stable ABI.
 - [ ] Full typed SSA for local variables and memory-safe ownership model.
+
+## Experimental static UTF-8 String subset
+
+- [x] Safe octal-encoded UTF-8 literals with bounded byte length and NUL rejection.
+- [x] Borrowed String locals, typed function calls/returns and content equality.
+- [x] Native String println/len semantics with Unicode codepoint test suite.
+- [ ] Owned, length-prefixed strings and checked allocator with cleanup.
+- [ ] Memory model governance, FFI borrowing rules and independent fuzzing.

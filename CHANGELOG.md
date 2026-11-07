@@ -6,6 +6,13 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — borrowed native UTF-8 literal Strings
+
+- Static-lifetime UTF-8 `String` literals, locals, returns and typed calls.
+- Unicode codepoint len, content equality, println; strict octal C escaping.
+- Rejects NUL, oversized literals and dynamic String operations.
+- No heap/GC/FFI, no final memory model, no 0.0.1 version bump.
+
 ## Unreleased research — native typed functions and guarded recursion
 
 - Typed Int/Bool parameters and Int/Bool/Unit return values on native IR.

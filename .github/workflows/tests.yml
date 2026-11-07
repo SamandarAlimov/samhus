@@ -99,6 +99,8 @@ jobs:
         run: python -m samhus emit-ir-c examples/native_value_ir.sahu
       - name: Emit C11 from guarded recursive Value IR functions
         run: python -m samhus emit-ir-c examples/native_value_ir_functions.sahu
+      - name: Emit C11 from static UTF-8 String Value IR
+        run: python -m samhus emit-ir-c examples/native_value_ir_strings.sahu
       - name: Build and run standalone Value IR native executable
         run: python scripts/native_value_ir_smoke.py
       - name: Compile and run native executable

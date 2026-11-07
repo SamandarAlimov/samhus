@@ -95,3 +95,11 @@ general backend runtime, FFI, C ABI and
 cross-platform production builds with fuzzing and sanitized tests.
 
 Version remains unreleased `0.0.0.dev0`; file extension is provisional.
+
+## Static UTF-8 String prototype
+
+The native Value IR backend also supports immutable UTF-8 String literals,
+lexical String variables, String parameters/returns, content equality,
+println and code-point length. This is borrowed, static-lifetime storage
+with no owned heap Strings or general memory management. Dynamic concat,
+indexing and FFI remain unsupported. See [NATIVE_STATIC_STRINGS.md](NATIVE_STATIC_STRINGS.md).

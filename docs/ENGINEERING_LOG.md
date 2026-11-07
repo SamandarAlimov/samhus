@@ -226,3 +226,17 @@ This is not a production compiler, finalized semantics or security sandbox.
 - Added third native CI smoke example containing factorial and loop sum.
 - Full native data semantics, a stable ABI, and memory safety are unresolved;
   version remains 0.0.0.dev0 and official 0.0.1 is not released.
+
+## 2026-11-07 — static-lifetime UTF-8 Strings for restricted native IR
+
+- Implemented native C11 String registers and lexical cells using borrowed
+  `const char *` pointers to compiler-emitted static UTF-8 literals.
+- Escapes bytes as three-digit octal sequences; rejects NUL, invalid UTF-8
+  and UTF-8 literals over 65536 bytes.
+- Added string values in Int/Bool/String typed user function signatures,
+  returns, equality/inequality and String print/len builtins.
+- Implemented length as Unicode code-point count for valid literal UTF-8.
+- Added String regression suite including Uzbek/Arabic/emoji and forbidden
+  dynamic operations, plus native-vs-VM executable smoke.
+- No dynamic String allocation, GC, ownership/borrow checker or FFI;
+  permanent memory model decision remains open; no 0.0.1 release.

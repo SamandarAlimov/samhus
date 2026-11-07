@@ -136,3 +136,8 @@ actively invoked through available tools or an explicitly configured agent.
 
 - [x] Restricted Value IR to C11 typed calls, returns, guarded recursion.
 - [ ] Full native language semantics, memory model and audited ABI.
+
+## Native string lifetime experiment (unreleased)
+
+- [x] Static-lifetime borrowed UTF-8 literals: String calls, len, equality.
+- [ ] Sound owned String/heap model, allocator/resource budgets and safe FFI.
