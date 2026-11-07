@@ -7,7 +7,8 @@ import unittest
 from pathlib import Path
 
 from samhus import SamhusError, parse_program, run_to_string
-from samhus.native_value_ir import MAX_NATIVE_LITERAL_BYTES, emit_value_ir_c
+from samhus.native_value_ir import MAX_NATIVE_LITERAL_BYTES, emit_value_ir_c, _static_utf8_literal
+from samhus.lexer import Token
 
 CC = next((name for name in ("cc", "gcc", "clang") if shutil.which(name)), None)
 
@@ -36,7 +37,7 @@ class NativeStringsTests(unittest.TestCase):
             self.assertEqual(compile_result.returncode, 0,
                              compile_result.stderr + "\n" + c[-7000:])
             result = subprocess.run(
-                [str(executable)], capture_output=True, encoding="utf-8", timeout=10,
+                [str(executable)], capture_output=True, timeout=10,
             )
             output = result.stdout.decode("utf-8").replace("\r\n", "\n")
             errors = result.stderr.decode("utf-8", errors="replace")
@@ -159,8 +160,9 @@ class NativeStringsTests(unittest.TestCase):
         self.native(main(body), "".join(word + "\n" for word in words))
 
     def test_no_nul_string(self):
+        token = Token("STRING", "", 1, 1)
         with self.assertRaisesRegex(SamhusError, "NUL byte"):
-            self.emit(main(r'println("hi\u0000bye")'))
+            _static_utf8_literal("hi" + chr(0) + "bye", token)
 
     def test_native_literal_byte_limit(self):
         oversized = "A" * (MAX_NATIVE_LITERAL_BYTES + 1)
