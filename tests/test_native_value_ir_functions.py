@@ -114,9 +114,8 @@ class NativeUserFunctionsTests(unittest.TestCase):
         with self.assertRaises(SamhusError):
             self.emit("fn f(n)->Int{return n}\nfn main()->Unit{println(f(1))}")
 
-    def test_unsupported_string_parameter_rejected(self):
-        with self.assertRaises(SamhusError):
-            self.emit('fn f(n:String)->Unit{println(n)}\nfn main()->Unit{f("x")}')
+    def test_borrowed_string_parameter(self):
+        self.native('fn f(n:String)->Unit{println(n)}\nfn main()->Unit{f("x")}',"x\n")
 
     def test_wrong_argument_type_rejected(self):
         with self.assertRaises(SamhusError):

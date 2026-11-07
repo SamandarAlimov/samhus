@@ -118,9 +118,8 @@ class NativeValueIRTests(unittest.TestCase):
         with self.assertRaises(SamhusError):
             self.emit(program('println(decimal("1.25"))'))
 
-    def test_reject_string(self):
-        with self.assertRaises(SamhusError):
-            self.emit(program('println("Hello")'))
+    def test_native_string(self):
+        self.native(program('println("Hello")'),"Hello\n")
 
     def test_while_in_subset(self):
         self.native(program("var i:Int=0;while i<3 {println(i);i=i+1}"),
