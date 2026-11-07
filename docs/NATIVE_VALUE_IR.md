@@ -24,7 +24,9 @@ external C compiler. This is separate from the older AST-to-C prototype.
 ## Explicitly rejected
 
 - Dynamically typed function parameters/returns and unimplemented builtins.
-- Floats, Strings, Decimals, Null, Result, List, Map and any dynamic Any.
+- Floats, Decimals, Null, Result, List, Map and any dynamic Any.
+- String values are supported only for the restricted, length-tracked
+  UTF-8 literal/view/concat subset described below; not general String APIs.
 - Unsupported integer literals, unsupported opcodes or user-defined calls.
 
 Unsupported code fails during compilation with a source-positioned
@@ -101,6 +103,7 @@ Version remains unreleased `0.0.0.dev0`; file extension is provisional.
 The native Value IR backend also supports immutable UTF-8 String literals,
 lexical String variables, String parameters/returns, content equality,
 println and code-point length. This is borrowed, static-lifetime storage
-with no owned heap Strings or general memory management. Dynamic concat,
-arbitrary substring slicing and FFI remain unsupported. Checked
+with no owned heap Strings or general memory management. String + String
+uses a checked 8 MiB process-lifetime arena without reclamation. Arbitrary
+substring slicing and FFI remain unsupported. Checked
 code-point indexing is supported through a length-tracked borrowed view. See [NATIVE_STATIC_STRINGS.md](NATIVE_STATIC_STRINGS.md).

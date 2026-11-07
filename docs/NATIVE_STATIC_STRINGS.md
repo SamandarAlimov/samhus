@@ -24,9 +24,10 @@ ownership language feature, standard ABI, package format or native runtime.
 
 ## Explicit limitations
 
-- No String concatenation, arbitrary substring slicing, mutation of contents,
-  interpolation, formatting, dynamic strings, StringBuilder, file/network
-  input, FFI, heap allocation, GC, refcounting or borrow checker.
+- String + String is supported only using a fixed, bounded process-lifetime
+  arena (8 MiB). No arbitrary substring slicing, mutation, interpolation,
+  formatting, StringBuilder, file/network input, FFI, heap allocation,
+  GC, refcounting, or borrow checker. Arena bytes are never reclaimed.
 - Rebinding `var name: String` swaps static references; it does NOT mutate
   the original immutable literal bytes.
 - `String` literal cannot contain NUL (current C11 null-terminated model);
@@ -34,7 +35,13 @@ ownership language feature, standard ABI, package format or native runtime.
 - Unpaired surrogate code points are rejected by the strict UTF-8 encoder.
 - `len` counts code points, not grapheme clusters or rendered glyphs.
 - Native String code-point indexing returns a view, not an owned copy.
-- All native strings ultimately come from known compiler-generated constants.
+- Native String + String makes an immutable copy in a checked 8 MiB
+  process-lifetime arena; earlier views remain valid across calls and loops.
+  Concatenation with an empty String avoids allocation; other concatenations
+  consume their combined byte lengths until exit. Exhaustion exits with
+  runtime code 2. Binaries without concat do not reserve the arena.
+- All native strings ultimately come from known compiler-generated constants
+  or checked copies in the arena.
   Never expose a pointer from unknown or untrusted C memory through this
   path without introducing lifetime/length validation and ownership rules.
 - No guarantee of an independently compiled native Samhus toolchain.
@@ -65,7 +72,8 @@ on Windows, macOS and Linux under Python 3.11 and 3.13.
 
 Implement an owned, **length-tracked** String representation with checked
 allocation and cleanup, explicit FFI contracts and resource bounds.
-Only after that should dynamic concat, arbitrary slicing and external UTF-8 strings
-be considered. This would require owner approval for the permanent
+The current bounded static arena supports String concat as a research bridge;
+general dynamic ownership, arbitrary slicing and external UTF-8 strings
+still require a reviewed architecture. This would require owner approval for the permanent
 language-level memory model. The current static-lifetime representation
 is an internal prototype choice, not a ratified Samhus rule.

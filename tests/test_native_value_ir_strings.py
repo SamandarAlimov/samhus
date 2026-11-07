@@ -171,8 +171,17 @@ class NativeStringsTests(unittest.TestCase):
             self.emit(main("println(" + '"' + oversized + '"' + ")"))
 
     def test_no_heap_concat(self):
-        with self.assertRaisesRegex(SamhusError, "unsupported binary"):
-            self.emit(main('println("Sam" + "hus")'))
+        self.native(main('println("Sam" + "hus")'), "Samhus\n")
+        code = self.emit(main('println("Sam" + "hus")'))
+        self.assertIn("sh_string_arena", code)
+        self.assertIn("sh_concat(", code)
+        self.assertNotIn("malloc(", code)
+        self.assertNotIn("free(", code)
+
+    def test_concat_arena_is_opt_in(self):
+        code = self.emit(main('println("hello")'))
+        self.assertNotIn("sh_string_arena", code)
+        self.assertNotIn("sh_concat(", code)
 
     def test_codepoint_string_index(self):
         self.native(main('println("abc"[0]);println("abc"[2])'),"a\nc\n")

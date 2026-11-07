@@ -254,3 +254,14 @@ This is not a production compiler, finalized semantics or security sandbox.
 - No allocator, owned Strings, dynamic concat or general slice semantics;
   source extension and permanent memory model still unapproved.
 - Package continues to be unreleased `0.0.0.dev0`.
+
+## 2026-11-07 — bounded native String concatenation research
+
+- Added native Value IR -> C11 String + String as a reversible milestone.
+- Concat reserves a fixed 8 MiB process-lifetime arena only when needed,
+  preserves earlier immutable String views across calls/loops/returns,
+  performs overflow-safe cumulative budget checks and fails with code 2.
+- Added UTF-8, nested expressions, snapshots, returning functions, indexing,
+  budget exhaustion and cross-backend regression coverage.
+- There is no reclaiming allocator, ownership specification, FFI or official
+  Samhus release; permanent model remains a founder decision.

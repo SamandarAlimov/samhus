@@ -27,19 +27,21 @@ the package/language version for every added feature. The first `0.0.1`
 tag is reserved until the gates in [Release policy](docs/RELEASE_POLICY.md)
 are verified and authorized. The existing Git history is preserved.
 
-## Borrowed native UTF-8 String subset — experimental
+## Bounded native UTF-8 String subset — experimental
 
 Independent Value IR -> C11 compilation now supports `String` values
 borrowed from compiler-created **static UTF-8 literals**, represented as
 **pointer + byte length**, with `println`, `len` (Unicode code points),
-content equality, checked `String[Int]` code-point indexing and typed
-locals/functions. No heap, GC, dynamic concat, general slicing or FFI is
-implemented. Source literals with NUL or over 65536 UTF-8
+content equality, checked `String[Int]` code-point indexing, native
+`String + String` and typed locals/functions. Concatenation uses an opt-in
+8 MiB process-lifetime static arena with checked exhaustion and no memory
+reclamation. No heap, GC, general slicing or FFI is implemented. Source literals with NUL or over 65536 UTF-8
 bytes are deliberately rejected. This is a temporary implementation
 approach, not an approved Samhus memory model.
 
     python -m samhus native-ir examples/native_value_ir_strings.sahu -o native-strings
     python -m samhus native-ir examples/native_value_ir_slices.sahu -o native-slices
+    python -m samhus native-ir examples/native_value_ir_concat.sahu -o native-concat
 
 See [bounded native String semantics](docs/NATIVE_STATIC_STRINGS.md).
 

@@ -1,8 +1,8 @@
-"""Experimental Value IR -> C11 backend for checked Int64/Bool and borrowed literals.
+"""Experimental Value IR -> C11 backend for checked Int64/Bool and Strings.
 
-String values are bounded immutable slices into static UTF-8 C literals.
-No heap, GC, FFI or ownership model is provided. This is a research-only
-compiler-internal representation, not approved permanent Samhus semantics.
+Strings are immutable length-tracked views of static UTF-8 literals or an
+opt-in bounded process-lifetime concatenation arena. Neither the arena nor
+the native subset represents a finalized ownership or memory safety model.
 """
 from .errors import SamhusError
 from .native_c import MAX_INT, PRELUDE
@@ -250,6 +250,10 @@ def _emit_one(function, signature, functions) -> list[str]:
                         _fail(inst, f"unsupported Int binary operator {arg!r}")
                 elif arg_types == ("Bool", "Bool") and arg in {"==", "!="}:
                     lines.append(f"    {dst} = ({args[0]} {arg} {args[1]});")
+                elif arg_types == ("String", "String") and arg == "+":
+                    if op.output_type != "String":
+                        _fail(inst, "native String concat requires String result")
+                    lines.append(f"    {dst} = sh_concat({args[0]}, {args[1]});")
                 elif arg_types == ("String", "String") and arg in {"==", "!="}:
                     comparator = "sh_string_equal"
                     comparison = f"{comparator}({args[0]}, {args[1]})"
@@ -381,6 +385,38 @@ def _emit_c(value: ValueProgram) -> str:
     ]
     lines += [
         "typedef struct { const unsigned char *data; size_t size; } sh_string;",
+    ]
+    # Only binaries using String + String reserve arena storage.
+    # Returned views outlive function frames; allocation is cumulative
+    # and checked. This is not a permanent language memory model.
+    needs_concat = any(
+        op.instruction.op == "BINARY"
+        and op.instruction.arg == "+"
+        and op.output_type == "String"
+        for fn in value.functions
+        for block in fn.blocks
+        for op in block.operations
+    )
+    if needs_concat:
+        lines += [
+            "#define SH_STRING_ARENA_LIMIT ((size_t)8388608)",
+            "static unsigned char sh_string_arena[SH_STRING_ARENA_LIMIT];",
+            "static size_t sh_string_arena_used = 0;",
+            "static sh_string sh_concat(sh_string left, sh_string right) {",
+            "    if (!left.size) return right;",
+            "    if (!right.size) return left;",
+            "    size_t remaining = SH_STRING_ARENA_LIMIT - sh_string_arena_used;",
+            "    if (left.size > remaining || right.size > remaining - left.size)",
+            '        sh_fail("String arena budget exceeded (8388608 bytes)");',
+            "    size_t combined = left.size + right.size;",
+            "    unsigned char *out = sh_string_arena + sh_string_arena_used;",
+            "    memcpy(out, left.data, left.size);",
+            "    memcpy(out + left.size, right.data, right.size);",
+            "    sh_string_arena_used += combined;",
+            "    return (sh_string){out, combined};",
+            "}",
+        ]
+    lines += [
         "static size_t sh_cp_size(unsigned char leading) {",
         "    if (leading < 0x80u) return 1;",
         "    if (leading >= 0xc2u && leading <= 0xdfu) return 2;",
@@ -433,5 +469,5 @@ def _emit_c(value: ValueProgram) -> str:
 
 
 def emit_value_ir_c(program: Program) -> str:
-    """Compile restricted Int64/Bool/static String programs to standalone C11."""
+    """Compile restricted Int64/Bool/length-tracked String programs to C11."""
     return _emit_c(compile_value_ir(program))
