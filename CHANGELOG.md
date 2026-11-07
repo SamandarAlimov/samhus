@@ -6,6 +6,13 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — local String store SSA-like graph
+
+- Added verified Value IR overlay identifying deterministic local String
+  store versions and per-predecessor PHI edges for branch/loop merges.
+- Exposed `samhus ir --local-ssa`, regression tests, README and CI smoke.
+- No native retain/drop lowering, final typed SSA, or ownership guarantee.
+
 ## Unreleased research — lexical String lifetime analysis
 
 - Added read-only lexical binding identity and scoped cleanup obligations

@@ -59,6 +59,8 @@ def main(argv: list[str] | None = None) -> int:
                            help="Show value definitions, uses and stack PHI edges (not full SSA)")
     ir_parser.add_argument("--ownership", action="store_true",
                            help="Show read-only String ownership obligations (not safe to lower)")
+    ir_parser.add_argument("--local-ssa", action="store_true",
+                           help="Show SSA-like String local store versions and PHI edges (research only)")
     ir_parser.add_argument("--optimize", action="store_true",
                            help="Show verified IR after pure literal folding")
     disasm_parser = subcommands.add_parser("disasm", help="Inspect experimental compiled bytecode")
@@ -84,6 +86,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--values and --types cannot be combined in this prototype")
     if args.command == "ir" and args.ownership and (args.values or args.types):
         parser.error("--ownership cannot be combined with --values or --types")
+    if args.command == "ir" and args.local_ssa and (args.values or args.ownership or args.types):
+        parser.error("--local-ssa cannot be combined with --values, --ownership or --types")
     try:
         program = None if args.command == "fmt" else load_program(args.file)
         if args.command == "check":
@@ -124,7 +128,7 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "disasm":
             sys.stdout.write(compile_ast(program).disassemble())
         elif args.command == "ir":
-            if args.values or args.ownership:
+            if args.values or args.ownership or args.local_ssa:
                 from .value_ir import analyze_value_ir
                 TypeChecker(program).check()
                 intermediate = compile_ir(program)
@@ -135,6 +139,9 @@ def main(argv: list[str] | None = None) -> int:
                 if args.ownership:
                     from .ownership_ir import analyze_ownership_ir
                     sys.stdout.write(analyze_ownership_ir(values).disassemble())
+                elif args.local_ssa:
+                    from .local_ssa_ir import analyze_local_ssa_ir
+                    sys.stdout.write(analyze_local_ssa_ir(values).disassemble())
                 else:
                     sys.stdout.write(values.disassemble())
             elif args.optimize:
