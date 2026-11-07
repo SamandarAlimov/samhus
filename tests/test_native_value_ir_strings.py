@@ -174,9 +174,8 @@ class NativeStringsTests(unittest.TestCase):
         with self.assertRaisesRegex(SamhusError, "unsupported binary"):
             self.emit(main('println("Sam" + "hus")'))
 
-    def test_no_string_index(self):
-        with self.assertRaisesRegex(SamhusError, "unsupported instruction"):
-            self.emit(main('println("abc"[0])'))
+    def test_codepoint_string_index(self):
+        self.native(main('println("abc"[0]);println("abc"[2])'),"a\nc\n")
 
     def test_no_dynamic_string_conversion(self):
         with self.assertRaisesRegex(SamhusError, "unsupported call"):
@@ -189,12 +188,12 @@ class NativeStringsTests(unittest.TestCase):
     def test_result_c_uses_utf8_octals(self):
         code = self.emit(main('println("🌍")'))
         self.assertIn(r"\360\237\214\215", code)
-        self.assertIn("const char *", code)
+        self.assertIn("const unsigned char *", code)
 
     def test_string_narrowed_to_static_storage(self):
         code = self.emit('fn echo(x:String)->String{return x}\n'
                          'fn main()->Unit{println(echo("text"))}')
-        self.assertIn("const char * sh_arg_0", code)
+        self.assertIn("sh_string sh_arg_0", code)
         self.assertNotIn("malloc(", code)
         self.assertNotIn("free(", code)
 

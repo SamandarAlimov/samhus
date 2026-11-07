@@ -1,0 +1,12 @@
+// Experimental C11 native String views, code-point indexing, no heap allocation.
+fn pick(text: String, index: Int) -> String {
+    return text[index]
+}
+
+fn main() -> Unit {
+    let word: String = "Samhus"
+    println(word[0])
+    println(pick("🌍🚀", 1))
+    println(len("O‘zbekiston"[1]))
+    println("Sam"[1] == "a")
+}
