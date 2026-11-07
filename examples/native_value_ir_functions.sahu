@@ -1,0 +1,22 @@
+// Experimental restricted native Value IR functions, recursion, and calls.
+fn factorial(n: Int) -> Int {
+    if n <= 1 {
+        return 1
+    }
+    return n * factorial(n - 1)
+}
+
+fn sum_to(n: Int) -> Int {
+    var index: Int = 1
+    var total: Int = 0
+    while index <= n {
+        total = total + index
+        index = index + 1
+    }
+    return total
+}
+
+fn main() -> Unit {
+    println(factorial(6))
+    println(sum_to(10))
+}
