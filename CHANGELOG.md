@@ -6,6 +6,16 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — CFG String owner edge obligations
+
+- Model per-CFG-edge String local forwarding and PHI owner obligations
+  using verified SSA store versions.
+- Record candidate owner replacements, normal scope exit and early-return
+  cleanup, preserving returned aliases before any future release.
+- Report operations with missing exceptional unwind/temporary cleanup.
+- Add `ir --edge-owners`, regression tests, docs and CI smoke.
+- This is strictly analysis only: no heap frees or refcount code emitted.
+
 ## Unreleased research — independent local String SSA dominance validator
 
 - Independently compute CFG block dominators and reject non-dominating

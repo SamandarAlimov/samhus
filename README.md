@@ -27,6 +27,15 @@ the package/language version for every added feature. The first `0.0.1`
 tag is reserved until the gates in [Release policy](docs/RELEASE_POLICY.md)
 are verified and authorized. The existing Git history is preserved.
 
+## Experimental String CFG ownership edge analysis
+
+Use `python -m samhus ir examples/native_value_ir_concat.sahu
+--edge-owners` to inspect **read-only** owner forwarding and PHI
+obligations per CFG edge, plus planned String local replacement,
+scope/return cleanup and possible exceptional-unwind gaps.
+Nothing in this report frees memory or permits enabling owned C11
+runtime lowering. See [String ownership edge research](docs/OWNERSHIP_EDGES.md).
+
 ## Independent Local SSA CFG dominance checks
 
 The String local SSA report now receives separate CFG dominator and

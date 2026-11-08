@@ -66,6 +66,10 @@ live-byte budget and real last-owner reclamation, but is **not invoked**
 by Samhus source compilation. The current native Value IR backend still
 uses its 8 MiB process-lifetime arena.
 
+A [read-only CFG-edge owner-obligations experiment](OWNERSHIP_EDGES.md)
+now identifies possible String local PHI forwarding, normal scope/return
+cleanup and exception-unwinding holes. It does not execute any release.
+
 ## Blockers before executable ownership lowering
 
 1. Introduce mutable local SSA or a precise local-lifetime data-flow model.
