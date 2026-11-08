@@ -335,3 +335,16 @@ This is not a production compiler, finalized semantics or security sandbox.
 - Added valid loop/shadowing and intentionally forged-graph regression
   cases; this proves neither alias safety nor executable ownership codegen.
 - `safe_to_lower=false` and the standalone C11 runtime remain unchanged.
+
+## 2026-11-08 — String owner obligations across CFG edges
+
+- Added read-only `ownership_edge_ir.py` layer over verified Value IR,
+  scoped local lifetime facts, SSA store versions and dominance checks.
+- Computes edge-specific String local forwarding and PHI transfer
+  requirements for branch and loop predecessor edges.
+- Models candidate normal cleanup at String replacement, lexical scope
+  exit and explicit/implicit returns; marks call/arithmetic/index/etc.
+  sites where exceptional unwind handling remains unmodeled.
+- The reports are not executable retain/drop instructions and never
+  authorize reclamation. Temporary stack aliases, exceptional jumps,
+  ABI and an owner-approved memory model remain unresolved.
