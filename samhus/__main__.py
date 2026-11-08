@@ -63,6 +63,8 @@ def main(argv: list[str] | None = None) -> int:
                            help="Show SSA-like String local store versions and PHI edges (research only)")
     ir_parser.add_argument("--edge-owners", action="store_true",
                            help="Show read-only CFG String owner transfer, cleanup and exceptional gaps")
+    ir_parser.add_argument("--temp-owners", action="store_true",
+                           help="Show read-only String stack temporary origins, uses and unwind gaps")
     ir_parser.add_argument("--optimize", action="store_true",
                            help="Show verified IR after pure literal folding")
     disasm_parser = subcommands.add_parser("disasm", help="Inspect experimental compiled bytecode")
@@ -93,6 +95,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "ir" and args.edge_owners and (
             args.values or args.ownership or args.local_ssa or args.types):
         parser.error("--edge-owners cannot be combined with other IR viewers")
+    if args.command == "ir" and args.temp_owners and (
+            args.values or args.ownership or args.local_ssa
+            or args.edge_owners or args.types):
+        parser.error("--temp-owners cannot be combined with other IR viewers")
+    if args.command == "ir" and args.edge_owners and args.temp_owners:
+        parser.error("--temp-owners cannot be combined with --edge-owners")
     try:
         program = None if args.command == "fmt" else load_program(args.file)
         if args.command == "check":
@@ -133,7 +141,7 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "disasm":
             sys.stdout.write(compile_ast(program).disassemble())
         elif args.command == "ir":
-            if args.values or args.ownership or args.local_ssa or args.edge_owners:
+            if args.values or args.ownership or args.local_ssa or args.edge_owners or args.temp_owners:
                 from .value_ir import analyze_value_ir
                 TypeChecker(program).check()
                 intermediate = compile_ir(program)
@@ -150,6 +158,9 @@ def main(argv: list[str] | None = None) -> int:
                 elif args.edge_owners:
                     from .ownership_edge_ir import analyze_edge_ownership_ir
                     sys.stdout.write(analyze_edge_ownership_ir(values).disassemble())
+                elif args.temp_owners:
+                    from .temporary_lifetime_ir import analyze_temporary_lifetime_ir
+                    sys.stdout.write(analyze_temporary_lifetime_ir(values).disassemble())
                 else:
                     sys.stdout.write(values.disassemble())
             elif args.optimize:

@@ -42,6 +42,10 @@ not where it is safe to insert a free or decrement.
 Value IR to detect tampering; neither this nor CFG dominance checking
 establishes heap-owner semantics or guarantees safe cleanup.
 
+The separate [stack temporary report](TEMPORARY_LIFETIMES.md) now
+identifies candidate nested-expression stack unwind gaps and lexical
+uses. It does not reconcile those with actual heap ownership.
+
 ## Outstanding proof obligations
 
 1. Establish precise heap-owner identity and temporary stack lifetime.
