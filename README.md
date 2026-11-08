@@ -27,6 +27,15 @@ the package/language version for every added feature. The first `0.0.1`
 tag is reserved until the gates in [Release policy](docs/RELEASE_POLICY.md)
 are verified and authorized. The existing Git history is preserved.
 
+## String stack temporary and alias analysis (read-only)
+
+Use `python -m samhus ir examples/native_value_ir_concat.sahu --temp-owners`
+to inspect stack String origins (literals, concat, indexed views, unknown
+call results and lexical local loads), consumption/escape sites and
+**missing temporary cleanup** on operations that may fail.
+Lexical final use is not a safe drop point; runtime reclamation is not
+enabled. Details: [temporary ownership research](docs/TEMPORARY_LIFETIMES.md).
+
 ## Experimental String CFG ownership edge analysis
 
 Use `python -m samhus ir examples/native_value_ir_concat.sahu

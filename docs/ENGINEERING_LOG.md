@@ -348,3 +348,15 @@ This is not a production compiler, finalized semantics or security sandbox.
 - The reports are not executable retain/drop instructions and never
   authorize reclamation. Temporary stack aliases, exceptional jumps,
   ABI and an owner-approved memory model remain unresolved.
+
+## 2026-11-08 — String stack temporary lifetime study
+
+- Added `temporary_lifetime_ir.py`: tracks typed stack String producers,
+  load aliases to local String SSA store versions, expression consumers
+  and lexical operation-use boundaries over verified Value IR.
+- Reports non-static String temporaries that may remain on the evaluation
+  stack if TICK, call, concat, indexing or other potentially failing
+  operations unwind without cleanup; stack PHI edges remain conditional.
+- CLI `ir --temp-owners`, dedicated differential/integrity regressions
+  and cross-platform smoke; no executable drops, heap owner proof or ABI.
+- Native C11 implementation and 0.0.0.dev0 release status unchanged.

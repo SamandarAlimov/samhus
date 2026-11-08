@@ -6,6 +6,16 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — String stack temporary and alias obligations
+
+- Added independent read-only stack String value origin and consumption
+  inventory with local SSA store-version links for local loads.
+- Distinguishes parent-dependent Unicode indexing views, concatenation
+  results, call return ABI uncertainty and unused result discards.
+- Tracks possible unmodeled stack unwind at risky operations while
+  non-static String stack temporaries are still live.
+- Added `ir --temp-owners`, regressions and CI smoke; never emits drops.
+
 ## Unreleased research — CFG String owner edge obligations
 
 - Model per-CFG-edge String local forwarding and PHI owner obligations

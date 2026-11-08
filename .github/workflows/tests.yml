@@ -109,6 +109,8 @@ jobs:
         run: python -m samhus ir examples/native_value_ir_concat.sahu --local-ssa
       - name: Inspect String CFG edge ownership obligations
         run: python -m samhus ir examples/native_value_ir_concat.sahu --edge-owners
+      - name: Inspect String stack temporary ownership obligations
+        run: python -m samhus ir examples/native_value_ir_concat.sahu --temp-owners
       - name: Build and run standalone Value IR native executable
         run: python scripts/native_value_ir_smoke.py
       - name: Compile and run native executable
