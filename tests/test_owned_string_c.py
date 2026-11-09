@@ -181,7 +181,7 @@ sh_owned_print(x);
 printf("%zu %zu\n", sh_owned_live_bytes(), sh_owned_live_objects());
 sh_owned_drop(&x);
 printf("%zu %zu\n", sh_owned_live_bytes(), sh_owned_live_objects());
-''', "Samhus 🌍\n10 1\n0 0\n")
+''', "Samhus 🌍\n11 1\n0 0\n")
 
     def test_copy_assign_shared_releases_previous_destination(self):
         self.run_c(r'''
