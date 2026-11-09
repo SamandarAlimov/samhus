@@ -360,3 +360,14 @@ This is not a production compiler, finalized semantics or security sandbox.
 - CLI `ir --temp-owners`, dedicated differential/integrity regressions
   and cross-platform smoke; no executable drops, heap owner proof or ABI.
 - Native C11 implementation and 0.0.0.dev0 release status unchanged.
+
+## 2026-11-09 — C11 owned String copy/move experiments and sanitizers
+
+- Added manually operated `sh_owned_copy_assign` with retain-before-drop
+  and `sh_owned_move_assign` with source-clearing and self-move support.
+- Tested alias-safe self-copy, shared Unicode slices and handle moves
+  alongside a deterministic 50,000-step randomized bounded stress fixture.
+- Added Ubuntu Clang ASan+UBSan test of the standalone owned runtime;
+  all existing CI jobs continue compiling that runtime in normal tests.
+- This is NOT compiler ownership lowering; C clients can still violate
+  the manual contract with shallow copies. No memory model/ABI approved.

@@ -6,6 +6,16 @@ unreleased `0.0.0.dev0` packaging placeholder; no official `0.0.1` has
 been approved or tagged. Future changes are tracked by Git commits and
 measured engineering milestones rather than incrementing a pseudo-version.
 
+## Unreleased research — manually owned C11 String copy/move assignments
+
+- Added retain-before-drop copy assignment and source-clearing move
+  assignment to the standalone, unreleased C11 owned String experiment.
+- Covered self-assignment, shared aliases, retained Unicode slices,
+  empty/moved-from handles, invalid arguments and deterministic stress.
+- Added opt-in Clang AddressSanitizer/UndefinedBehaviorSanitizer CI
+  on Ubuntu to inspect live-owner releases and memory errors.
+- Native Value IR compiler remains isolated from this runtime.
+
 ## Unreleased research — String stack temporary and alias obligations
 
 - Added independent read-only stack String value origin and consumption

@@ -14,6 +14,12 @@ This experiment consists of `runtime/owned_string.h` and
 - Every returned handle owns one strong reference. An explicit
   `sh_owned_retain` creates another reference; every owned handle must be
   paired with exactly one `sh_owned_drop`.
+- `sh_owned_copy_assign(&destination, source)` retains the incoming
+  reference **before** releasing the previous destination, including
+  `sh_owned_copy_assign(&x, x)`; `sh_owned_move_assign(&destination,
+  &source)` transfers an existing strong reference and clears source.
+  `sh_owned_move_assign(&x, &x)` is a no-op. Both operations require
+  valid initialized C handles and do **not** prevent unsafe shallow copies.
 - Code-point slices and indexes increment the original buffer's reference
   count and remain readable after the parent handle is dropped.
 - Concatenation creates a fresh owned result, except when an operand is
@@ -49,9 +55,12 @@ use-after-free.
     python -m unittest discover -s tests -v
 
 Cross-platform GitHub Actions runs these compiled C11 scenarios on Ubuntu,
-Windows and macOS for Python 3.11 and 3.13. These checks cover UTF-8,
-reclamation, lifetime, invalid indexes and memory pressure, but do **not**
-certify formal correctness or replace ASan/UBSan.
+Windows and macOS for Python 3.11 and 3.13, including deterministic
+50,000-operation randomized handle replacement/move/slice/concat stress.
+An additional Ubuntu Clang build runs that stress fixture with
+**AddressSanitizer + UndefinedBehaviorSanitizer**, including leak detection.
+Sanitizer success is a narrower dynamic test, not a proof of memory safety
+for arbitrary C clients, platforms or real compiler lowering.
 
 ## Next engineering gate
 
