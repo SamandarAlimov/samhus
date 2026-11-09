@@ -27,6 +27,17 @@ the package/language version for every added feature. The first `0.0.1`
 tag is reserved until the gates in [Release policy](docs/RELEASE_POLICY.md)
 are verified and authorized. The existing Git history is preserved.
 
+## Manual C11 owned String assignment safety experiments
+
+The independent owned String C11 research runtime now exposes
+`sh_owned_copy_assign` (retain-before-drop, safe for valid self-copy)
+and `sh_owned_move_assign` (consumes and clears the source).
+Regression tests exercise shared aliases, Unicode retained slices,
+self-assignment and deterministic stress. Ubuntu Clang also runs the
+stress fixture with ASan/UBSan. **This is not Samhus compiler memory
+management**; shallow C handle copies are still unsafe.
+See [owned String research](docs/OWNED_STRING_RESEARCH.md).
+
 ## String stack temporary and alias analysis (read-only)
 
 Use `python -m samhus ir examples/native_value_ir_concat.sahu --temp-owners`

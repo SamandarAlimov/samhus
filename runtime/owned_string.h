@@ -21,6 +21,14 @@ typedef struct {
 sh_owned sh_owned_new_utf8(const unsigned char *data, size_t size);
 sh_owned sh_owned_retain(sh_owned value);
 void sh_owned_drop(sh_owned *value);
+/* Copy-assignment retains source BEFORE dropping destination, including
+ * source == *destination. This is a manual contract, not a safe C type.
+ */
+void sh_owned_copy_assign(sh_owned *destination, sh_owned source);
+/* Move-assignment consumes *source and clears it; self-move is a no-op.
+ * Both pointer arguments must refer to valid initialized handle slots.
+ */
+void sh_owned_move_assign(sh_owned *destination, sh_owned *source);
 sh_owned sh_owned_concat(sh_owned left, sh_owned right);
 sh_owned sh_owned_slice_cp(sh_owned value, size_t start, size_t end);
 sh_owned sh_owned_index_cp(sh_owned value, size_t index);

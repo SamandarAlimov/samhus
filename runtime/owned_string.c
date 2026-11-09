@@ -108,6 +108,27 @@ void sh_owned_drop(sh_owned *value) {
     }
 }
 
+void sh_owned_copy_assign(sh_owned *destination, sh_owned source) {
+    if (!destination) sh_owned_fail("Null String destination");
+    /* Retain first: source may refer to the destination's last owner. */
+    sh_owned held = sh_owned_retain(source);
+    sh_owned_drop(destination);
+    *destination = held;
+}
+
+void sh_owned_move_assign(sh_owned *destination, sh_owned *source) {
+    if (!destination) sh_owned_fail("Null String destination");
+    if (!source) sh_owned_fail("Null String move source");
+    if (destination == source) return;
+    /* Move ownership without incrementing the source's reference count.
+     * Clearing source first prevents accidental double-drop by a caller.
+     */
+    sh_owned moved = *source;
+    *source = sh_empty();
+    sh_owned_drop(destination);
+    *destination = moved;
+}
+
 sh_owned sh_owned_concat(sh_owned left, sh_owned right) {
     if (!left.size) return sh_owned_retain(right);
     if (!right.size) return sh_owned_retain(left);

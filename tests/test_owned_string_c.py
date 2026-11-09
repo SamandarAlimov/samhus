@@ -171,6 +171,130 @@ sh_owned_drop(&x);
         self.assertNotIn("sh_owned_", generated)
         self.assertIn("sh_string_arena", generated)
 
+    def test_copy_assign_self_uses_retain_before_drop(self):
+        self.run_c(r'''
+const unsigned char s[] = "Samhus 🌍";
+sh_owned x = sh_owned_new_utf8(s, sizeof(s)-1);
+sh_owned_copy_assign(&x, x);
+sh_owned_copy_assign(&x, x);
+sh_owned_print(x);
+printf("%zu %zu\n", sh_owned_live_bytes(), sh_owned_live_objects());
+sh_owned_drop(&x);
+printf("%zu %zu\n", sh_owned_live_bytes(), sh_owned_live_objects());
+''', "Samhus 🌍\n10 1\n0 0\n")
+
+    def test_copy_assign_shared_releases_previous_destination(self):
+        self.run_c(r'''
+const unsigned char a[] = "first";
+const unsigned char b[] = "second";
+sh_owned x = sh_owned_new_utf8(a, 5);
+sh_owned y = sh_owned_new_utf8(b, 6);
+sh_owned keep = sh_owned_retain(y);
+sh_owned_copy_assign(&x, y);
+sh_owned_drop(&y);
+sh_owned_print(x);
+sh_owned_print(keep);
+printf("%zu %zu\n", sh_owned_live_bytes(), sh_owned_live_objects());
+sh_owned_drop(&x); sh_owned_drop(&keep);
+printf("%zu %zu\n", sh_owned_live_bytes(), sh_owned_live_objects());
+''', "second\nsecond\n6 1\n0 0\n")
+
+    def test_copy_assign_from_slice_retains_parent(self):
+        self.run_c(r'''
+const unsigned char s[] = "A🌍🚀Z";
+sh_owned all = sh_owned_new_utf8(s, sizeof(s)-1);
+sh_owned rocket = sh_owned_index_cp(all, 2);
+sh_owned outer = sh_owned_new_utf8((const unsigned char *)"other", 5);
+sh_owned_copy_assign(&outer, rocket);
+sh_owned_drop(&all); sh_owned_drop(&rocket);
+sh_owned_print(outer);
+printf("%zu %zu\n", sh_owned_live_bytes(), sh_owned_live_objects());
+sh_owned_drop(&outer);
+printf("%zu %zu\n", sh_owned_live_bytes(), sh_owned_live_objects());
+''', "🚀\n10 1\n0 0\n")
+
+    def test_move_assign_self_is_noop(self):
+        self.run_c(r'''
+const unsigned char a[] = "same";
+sh_owned x = sh_owned_new_utf8(a, 4);
+sh_owned_move_assign(&x, &x);
+sh_owned_print(x);
+printf("%zu %zu\n", sh_owned_live_bytes(), sh_owned_live_objects());
+sh_owned_drop(&x);
+printf("%zu %zu\n", sh_owned_live_bytes(), sh_owned_live_objects());
+''', "same\n4 1\n0 0\n")
+
+    def test_move_assign_clears_source_and_drops_old_destination(self):
+        self.run_c(r'''
+const unsigned char a[] = "old";
+const unsigned char b[] = "new";
+sh_owned x = sh_owned_new_utf8(a, 3);
+sh_owned y = sh_owned_new_utf8(b, 3);
+sh_owned_move_assign(&x, &y);
+sh_owned_print(x);
+printf("%zu %zu %zu\n", y.owner == NULL ? (size_t)1 : (size_t)0,
+       sh_owned_live_bytes(), sh_owned_live_objects());
+sh_owned_drop(&x); sh_owned_drop(&y);
+printf("%zu %zu\n", sh_owned_live_bytes(), sh_owned_live_objects());
+''', "new\n1 3 1\n0 0\n")
+
+    def test_move_assign_shared_alias_preserves_remaining_references(self):
+        self.run_c(r'''
+const unsigned char a[] = "one";
+sh_owned a1 = sh_owned_new_utf8(a, 3);
+sh_owned a2 = sh_owned_retain(a1);
+sh_owned a3 = sh_owned_retain(a1);
+sh_owned_move_assign(&a1, &a2);
+sh_owned_drop(&a2);
+sh_owned_print(a1); sh_owned_print(a3);
+printf("%zu %zu\n", sh_owned_live_bytes(), sh_owned_live_objects());
+sh_owned_drop(&a1); sh_owned_drop(&a3);
+printf("%zu %zu\n", sh_owned_live_bytes(), sh_owned_live_objects());
+''', "one\none\n3 1\n0 0\n")
+
+    def test_copy_assign_empty_releases_previous(self):
+        self.run_c(r'''
+sh_owned empty = sh_owned_new_utf8(NULL, 0);
+sh_owned item = sh_owned_new_utf8((const unsigned char *)"old", 3);
+sh_owned_copy_assign(&item, empty);
+printf("%zu %zu %zu\n", item.size, sh_owned_live_bytes(),
+       sh_owned_live_objects());
+sh_owned_drop(&item); sh_owned_drop(&empty);
+''', "0 0 0\n")
+
+    def test_move_assign_empty_releases_previous(self):
+        self.run_c(r'''
+sh_owned empty = sh_owned_new_utf8(NULL, 0);
+sh_owned item = sh_owned_new_utf8((const unsigned char *)"old", 3);
+sh_owned_move_assign(&item, &empty);
+printf("%zu %zu %zu\n", item.size, sh_owned_live_bytes(),
+       sh_owned_live_objects());
+sh_owned_drop(&item); sh_owned_drop(&empty);
+''', "0 0 0\n")
+
+    def test_copy_assign_null_destination_rejected(self):
+        self.run_c(r'''
+sh_owned value = sh_owned_new_utf8((const unsigned char *)"a", 1);
+sh_owned_copy_assign(NULL, value);
+''', failure="Null String destination")
+
+    def test_move_assign_null_destination_rejected(self):
+        self.run_c(r'''
+sh_owned value = sh_owned_new_utf8((const unsigned char *)"a", 1);
+sh_owned_move_assign(NULL, &value);
+''', failure="Null String destination")
+
+    def test_move_assign_null_source_rejected(self):
+        self.run_c(r'''
+sh_owned value = sh_owned_new_utf8((const unsigned char *)"a", 1);
+sh_owned_move_assign(&value, NULL);
+''', failure="Null String move source")
+
+    def test_deterministic_owned_handle_stress(self):
+        body = (PROJECT / "tests" / "fixtures" /
+                "owned_string_stress_body.inc").read_text(encoding="utf-8")
+        self.run_c(body, "0 0\n")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -117,3 +117,14 @@ jobs:
         run: python scripts/native_smoke.py
       - name: Run smoke benchmark
         run: python scripts/benchmark.py --repeat 1
+
+  owned-string-sanitizers:
+    name: owned String C11 (Ubuntu Clang ASan/UBSan)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Run independent owned String stress under ASan and UBSan
+        run: python scripts/owned_string_sanitizer.py
